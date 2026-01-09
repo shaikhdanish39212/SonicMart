@@ -1,53 +1,53 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   if (!response.ok) {
     if (response.status === 401) {
       // Check if this is a login attempt (don't clear session for login failures)
-      const isLoginAttempt = response.url.includes('/auth/login') || 
-                            response.url.includes('/auth/register');
-      
+      const isLoginAttempt = response.url.includes('/auth/login') ||
+        response.url.includes('/auth/register');
+
       if (!isLoginAttempt) {
         // This is a session expiry on an authenticated endpoint
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        
+
         // Dispatch custom event for AuthContext to handle
         window.dispatchEvent(new CustomEvent('auth-logout', {
           detail: { reason: 'session-expired' }
         }));
       }
     }
-    
-    const errorData = await response.json().catch(() => ({ 
-      message: `Error ${response.status}: ${response.statusText}` 
+
+    const errorData = await response.json().catch(() => ({
+      message: `Error ${response.status}: ${response.statusText}`
     }));
-    
+
     console.error('🔧 API Error Response:', {
       status: response.status,
       statusText: response.statusText,
       errorData: errorData,
       url: response.url
     });
-    
+
     // Create more detailed error message with validation details
     let errorMessage = errorData.message || `HTTP ${response.status}`;
-    
+
     // If there are validation errors, include them
     if (errorData.errors && Array.isArray(errorData.errors)) {
       const validationMessages = errorData.errors.map(err => err.msg || err.message).join(', ');
       errorMessage = `${errorMessage}: ${validationMessages}`;
     }
-    
+
     // If there are validation details, include them
     if (errorData.details) {
       errorMessage = `${errorMessage} (${errorData.details})`;
     }
-    
+
     throw new Error(errorMessage);
   }
-  
+
   return response.json();
 };
 
@@ -99,7 +99,7 @@ export const productsAPI = {
 
   // Get single product by ID
   getProduct: async (id, bustCache = false) => {
-    const url = bustCache 
+    const url = bustCache
       ? `${API_BASE_URL}/products/${id}?_fresh=${Date.now()}`
       : `${API_BASE_URL}/products/${id}`;
     const response = await fetch(url, {
@@ -130,10 +130,10 @@ export const productsAPI = {
 
   // Get products by category
   getProductsByCategory: async (category, params = {}) => {
-  // add a cache-busting param to avoid stale 304 responses in some browsers/proxies
-  const withNoCache = { ...params, _ts: Date.now() };
-  const queryString = new URLSearchParams(withNoCache).toString();
-  const url = `${API_BASE_URL}/products/category/${category}?${queryString}`;
+    // add a cache-busting param to avoid stale 304 responses in some browsers/proxies
+    const withNoCache = { ...params, _ts: Date.now() };
+    const queryString = new URLSearchParams(withNoCache).toString();
+    const url = `${API_BASE_URL}/products/category/${category}?${queryString}`;
     const response = await fetch(url);
     return handleResponse(response);
   },
@@ -162,16 +162,16 @@ export const productsAPI = {
     console.log('🔧 API: Adding review for product:', productId);
     console.log('🔧 API: Review data being sent:', reviewData);
     console.log('🔧 API: Auth headers:', getAuthHeaders());
-    
+
     const response = await fetch(`${API_BASE_URL}/products/${productId}/reviews`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(reviewData)
     });
-    
+
     console.log('🔧 API: Response status:', response.status);
     console.log('🔧 API: Response headers:', Object.fromEntries(response.headers));
-    
+
     return handleResponse(response);
   }
 };
@@ -361,14 +361,14 @@ export const ordersAPI = {
       method: 'GET',
       headers: getAuthHeaders()
     });
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ 
-        message: `Error ${response.status}: ${response.statusText}` 
+      const errorData = await response.json().catch(() => ({
+        message: `Error ${response.status}: ${response.statusText}`
       }));
       throw new Error(errorData.message || `HTTP ${response.status}`);
     }
-    
+
     return response.blob(); // Return blob for PDF download
   }
 };

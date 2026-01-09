@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/admin';
 
 // Request interceptor to add auth token
 axios.interceptors.request.use(
@@ -74,7 +74,7 @@ const adminAPI = {
   auth: {
     getCurrentUser: async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/auth/me');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/me`);
         return {
           success: true,
           data: response.data.data.user
@@ -113,7 +113,7 @@ const adminAPI = {
             permissions: []
           }
         };
-        
+
         return {
           success: true,
           data: rolePermissions[roleName] || { permissions: [] }
