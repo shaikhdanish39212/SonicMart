@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Images Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .item { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        img { max-width: 100px; max-height: 100px; border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Cart Images Debug Tool</h1>
+    
+    <div class="debug-section">
+        <h2>Cart Data Analysis</h2>
+        <button onclick="analyzeCart()">Analyze Cart Data</button>
+        <div id="cartAnalysis"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>Image URL Testing</h2>
+        <button onclick="testImageUrls()">Test Image URLs</button>
+        <div id="imageTests"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>Local Storage Cart</h2>
+        <button onclick="checkLocalStorage()">Check Local Storage</button>
+        <div id="localStorageData"></div>
+    </div>
+
+    <script>
+        // Get cart data from localStorage
+        function getCartData() {
+            try {
+                const cartData = localStorage.getItem('cart');
+                return cartData ? JSON.parse(cartData) : null;
+            } catch (e) {
+                console.error('Error parsing cart data:', e);
+                return null;
+            }
+        }
+
+        // Simulate getImageUrl function
+        function getImageUrl(imagePath) {
+            if (!imagePath) return '/images/DJSpeaker1.png';
+            
+            if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+                return imagePath;
+            }
+            
+            if (imagePath.includes('/internal_components/images/')) {
+                return imagePath;
+            }
+            
+            if (imagePath.startsWith('/images/')) {
+                return imagePath;
+            }
+            
+            if (imagePath.startsWith('internal_components/')) {
+                return `/images/${imagePath}`;
+            }
+            
+            if (imagePath.startsWith('/')) {
+                return `/images${imagePath}`;
+            }
+            
+            return `/images/${imagePath}`;
+        }
+
+        function analyzeCart() {
+            const cartData = getCartData();
+            const analysisDiv = document.getElementById('cartAnalysis');
+            
+            if (!cartData || cartData.length === 0) {
+                analysisDiv.innerHTML = '<p class="error">No cart data found. Please add items to cart first.</p>';
+                return;
+            }
+
+            let html = '<h3>Cart Items Analysis:</h3>';
+            cartData.forEach((item, index) => {
+                html += `<div class="item">
+                    <h4>Item ${index + 1}: ${item.name || 'Unknown'}</h4>
+                    <p><strong>ID:</strong> ${item.id || item._id || 'No ID'}</p>
+                    <p><strong>Image Property:</strong> ${item.image || 'undefined'}</p>
+                    <p><strong>Images Array:</strong> ${JSON.stringify(item.images) || 'undefined'}</p>
+                    <p><strong>ImageUrl Property:</strong> ${item.imageUrl || 'undefined'}</p>
+                    <p><strong>Resolved Image:</strong> ${item.images?.[0] || item.image || item.imageUrl || 'No image found'}</p>
+                    <p><strong>getImageUrl Result:</strong> ${getImageUrl(item.images?.[0] || item.image || item.imageUrl)}</p>
+                </div>`;
+            });
+            
+            analysisDiv.innerHTML = html;
+        }
+
+        function testImageUrls() {
+            const cartData = getCartData();
+            const testsDiv = document.getElementById('imageTests');
+            
+            if (!cartData || cartData.length === 0) {
+                testsDiv.innerHTML = '<p class="error">No cart data to test.</p>';
+                return;
+            }
+
+            let html = '<h3>Image URL Tests:</h3>';
+            cartData.forEach((item, index) => {
+                const imageUrl = getImageUrl(item.images?.[0] || item.image || item.imageUrl);
+                const fullUrl = `http://localhost:5174${imageUrl}`;
+                
+                html += `<div class="item">
+                    <h4>Item ${index + 1}: ${item.name}</h4>
+                    <p><strong>Generated URL:</strong> ${imageUrl}</p>
+                    <p><strong>Full URL:</strong> ${fullUrl}</p>
+                    <p><strong>Image Test:</strong></p>
+                    <img src="${fullUrl}" alt="${item.name}" onerror="this.style.border='2px solid red'; this.nextSibling.innerHTML='❌ Failed to load';" onload="this.nextSibling.innerHTML='✅ Loaded successfully';">
+                    <span></span>
+                </div>`;
+            });
+            
+            testsDiv.innerHTML = html;
+        }
+
+        function checkLocalStorage() {
+            const storageDiv = document.getElementById('localStorageData');
+            const cartData = localStorage.getItem('cart');
+            
+            let html = '<h3>Local Storage Cart Data:</h3>';
+            if (cartData) {
+                html += `<pre>${JSON.stringify(JSON.parse(cartData), null, 2)}</pre>`;
+            } else {
+                html += '<p class="error">No cart data in localStorage</p>';
+            }
+            
+            storageDiv.innerHTML = html;
+        }
+
+        // Auto-run analysis on page load
+        window.onload = function() {
+            setTimeout(() => {
+                analyzeCart();
+                testImageUrls();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
