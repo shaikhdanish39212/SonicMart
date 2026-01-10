@@ -49,7 +49,7 @@ const ProductPage = () => {
         isSample: true
       },
       {
-        id: 'sample-2', 
+        id: 'sample-2',
         userName: 'Priya Sharma',
         rating: 4,
         title: 'Great Value for Money',
@@ -109,45 +109,45 @@ const ProductPage = () => {
   const loadInternalComponent = async (componentId) => {
     // Extract the component index from the ID (e.g., "internal_component_5" -> 5)
     const componentIndex = parseInt(componentId.split('_')[2]) - 1;
-    
+
     // Create a seeded random function based on component index
     const seededRandom = (seed) => {
       const x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
     };
-    
+
     // Internal component images list (same as in InternalComponents.jsx)
     const internalComponentImages = [
       // DJ Speaker Components
       'DJSpeaker_Woofer1.png', 'DJSpeaker_HornTweeters2.png', 'DJSpeaker_ProfessionalCrossovers3.png',
       'DJSpeaker_ReinforcedCones4.png', 'DJSpeaker_CoolingSystem5.png', 'DJSpeaker_ProtectiveGrilles6.png',
       'DJSpeaker_PortSystems7.png', 'DJSpeaker_MountingHardware8.png',
-      
+
       // Drums & Percussion Components
       'DrumsPercussion_DrumHeads1.png', 'DrumsPercussion_DrumStickTips2.png', 'DrumsPercussion_DrumShell3.png',
       'DrumsPercussion_TensionRods4.png', 'DrumsPercussion_DrumLugs5.png', 'DrumsPercussion_SnareWires6.png',
       'DrumsPercussion_DrumHoops7.png', 'DrumsPercussion_HihatClutch8.png',
-      
+
       // EarBuds Components
       'EarBuds_Driver6mm_12mm1.png', 'EarBuds_SiliconeEarTipsSet2.png', 'EarBuds_Li-on_Batteries3.png',
       'EarBuds_Bluetooth_5.0_Module4.png', 'EarBuds_Memory_Foam_Tips5.png', 'EarBuds_Charging_Case6.png',
       'Earbud_WirelessChargingCoil7.png', 'Earbud_Cables8.png',
-      
+
       // Earphones Components
       'Earphones_In_ear_Drivers1.png', 'Earphones_Audio Cables_3.5mm2.png', 'Earphones_Y_splitter_Connectors3.png',
       'Earphones_3.5mm_Connectors4.png', 'Earphones_StrainReliefBoots5.png', 'Earphones_CableShielding6.png',
       'Earphones_WireConductors7.png', 'Earphones_CableJackets8.png',
-      
+
       // Guitars & Basses Components
       'GuitarsBasses_HumbuckerPickups1.png', 'GuitarsBasses_SingleCoilPickups2.png', 'GuitarsBasses_GuitarStrings3.png',
       'GuitarsBassesBassStrings4.png', 'GuitarsBasses_Potentiometers5.png', 'GuitarsBasses_Capacitors6.png',
       'GuitarsBasses_GuitarJacks7.png', 'GuitarsBasses_PickupRings8.png',
-      
+
       // HeadPhones Components
       'HeadPhonesDriver1.png', 'HeadPhonesNeodymiumMagnet2.png', 'HeadPhonesVoiceCoil3.png',
       'HeadPhonesDiaphragm4.png', 'HeadPhones_HeadbandPaddingFoam5.png', 'HeadPhonesCables6.png',
       'HeadPhones_EarCupCushion7.png', 'HeadPhones_3.5mm_6.35mmConnectors8.png',
-      
+
       // Speakers Components
       'Speakers_Woofers1.png', 'Speakers_Tweeters2.png', 'Speakers_Driver3.png',
       'Speakers_CrossoverNetworks4.png', 'Speakers_VoiceCoils5.png', 'Speakers_MagnetFerrite6.png',
@@ -160,19 +160,19 @@ const ProductPage = () => {
 
     const imageName = internalComponentImages[componentIndex];
     const componentInfo = parseComponentName(imageName);
-    
+
     // Generate gallery images for the component (only main image, no fake variants)
     const baseImageName = imageName.replace('.png', '');
     const galleryImages = [
       `/images/internal_components/images/${imageName}` // Only main image: ComponentName.png
     ];
-    
+
     // Calculate pricing using seeded random for consistency
     const basePrice = Math.floor(seededRandom(componentIndex + 1) * 200) + 50;
     const discountPercent = Math.floor(seededRandom(componentIndex + 2) * 25) + 5;
     const originalPrice = Math.floor(basePrice * 1.3);
     const discountedPrice = Math.floor(originalPrice * (1 - discountPercent / 100));
-    
+
     return {
       _id: componentId,
       id: componentId,
@@ -209,7 +209,7 @@ const ProductPage = () => {
   const parseComponentName = (imageName) => {
     const baseName = imageName.replace('.png', '');
     const parts = baseName.split('_');
-    
+
     const categoryMap = {
       'DJSpeaker': 'DJ Speaker Components',
       'DrumsPercussion': 'Drums & Percussion Components',
@@ -222,19 +222,19 @@ const ProductPage = () => {
     };
 
     const category = categoryMap[parts[0]] || 'Audio Components';
-    
+
     let componentName = parts.slice(1).join(' ')
       .replace(/_/g, ' ')
       .replace(/([a-z])([A-Z])/g, '$1 $2')
       .replace(/\d+$/, '')
       .replace(/\b\w/g, l => l.toUpperCase())
       .trim();
-    
+
     if (componentName === '') {
       const lastPart = baseName.split(/(?=[A-Z])/).pop();
       componentName = lastPart.replace(/\d+$/, '').replace(/([a-z])([A-Z])/g, '$1 $2');
     }
-    
+
     let type = 'Specialized Components';
     if (componentName.includes('Driver') || componentName.includes('Woofer')) {
       type = 'Audio Drivers';
@@ -269,7 +269,7 @@ const ProductPage = () => {
     } else if (componentName.includes('Cooling') || componentName.includes('System')) {
       type = 'Thermal Management';
     }
-    
+
     const features = [];
     if (componentName.includes('Professional')) features.push('Professional Grade');
     if (componentName.includes('5.0')) features.push('Bluetooth 5.0');
@@ -284,11 +284,11 @@ const ProductPage = () => {
     if (componentName.includes('Protective')) features.push('Protective Design');
     if (componentName.includes('Horn')) features.push('Horn-Loaded Design');
     if (componentName.includes('Ferrite')) features.push('Ferrite Core');
-    
+
     if (features.length === 0) {
       features.push('High Quality', 'Professional Use', 'Durable Construction');
     }
-    
+
     return {
       name: componentName,
       category: category,
@@ -302,10 +302,10 @@ const ProductPage = () => {
       setLoading(true);
       setError(null);
       let response;
-      
+
       // Check if this is an internal component based on the current route
       const isComponentRoute = window.location.pathname.includes('/component/');
-      
+
       if (isComponentRoute && id && id.startsWith('internal_component_')) {
         // Handle internal component - now load from backend to get review data
         try {
@@ -331,14 +331,14 @@ const ProductPage = () => {
         setProduct(response.data.product);
         setSelectedImage(0);
       }
-      
+
       // Apply deal pricing if coming from deals page
       const isDeal = searchParams.get('deal') === 'true';
       if (isDeal && response && response.data.product) {
         const dealPrice = parseFloat(searchParams.get('dealPrice'));
         const originalPrice = parseFloat(searchParams.get('originalPrice'));
         const discount = parseFloat(searchParams.get('discount'));
-        
+
         if (dealPrice && originalPrice && discount) {
           const productWithDealPricing = {
             ...response.data.product,
@@ -357,14 +357,14 @@ const ProductPage = () => {
           setProduct(productWithDealPricing);
         }
       }
-       // Load reviews from the product data and add sample reviews for reference
+      // Load reviews from the product data and add sample reviews for reference
       // Use the current product state (which may include deal pricing) for reviews
       const currentProduct = product || (response && response.data.product);
       if (currentProduct) {
         const product = currentProduct;
         let combinedReviews = [];
         let finalReviewStats = { ...reviewStats }; // Start with default stats
-        
+
         // Handle internal components (they have their own review system)
         if (isComponentRoute) {
           // Add real internal component reviews if they exist
@@ -383,12 +383,12 @@ const ProductPage = () => {
               isSample: false
             }));
             combinedReviews = [...componentReviews];
-            
+
             // Calculate stats from real reviews
             const avgRating = componentReviews.reduce((sum, r) => sum + r.rating, 0) / componentReviews.length;
-            const starBreakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            const starBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
             componentReviews.forEach(r => starBreakdown[r.rating]++);
-            
+
             finalReviewStats = {
               averageRating: Math.round(avgRating * 10) / 10,
               totalReviews: componentReviews.length,
@@ -399,24 +399,24 @@ const ProductPage = () => {
           else if ((product.averageRating && product.totalReviews) || (product.rating && product.reviewCount)) {
             const avgRating = product.averageRating || product.rating;
             const totalReviews = product.totalReviews || product.reviewCount;
-            
+
             // Generate plausible star breakdown
-            const starBreakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            const starBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
             const mainRating = Math.round(avgRating);
-            
+
             starBreakdown[mainRating] = Math.floor(totalReviews * 0.6);
             if (mainRating > 1) starBreakdown[mainRating - 1] = Math.floor(totalReviews * 0.2);
             if (mainRating < 5) starBreakdown[mainRating + 1] = Math.floor(totalReviews * 0.15);
             if (mainRating > 2) starBreakdown[mainRating - 2] = Math.floor(totalReviews * 0.03);
             if (mainRating < 4) starBreakdown[mainRating + 2] = Math.floor(totalReviews * 0.02);
-            
+
             finalReviewStats = {
               averageRating: avgRating,
               totalReviews: totalReviews,
               starBreakdown
             };
           }
-          
+
           // Always add sample reviews for reference
           const sampleReviews = generateSampleReviews(product.name, true);
           combinedReviews = [...combinedReviews, ...sampleReviews];
@@ -439,12 +439,12 @@ const ProductPage = () => {
               isSample: false
             }));
             combinedReviews = [...productReviews];
-            
+
             // Calculate stats from real reviews
             const avgRating = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
-            const starBreakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            const starBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
             productReviews.forEach(r => starBreakdown[r.rating]++);
-            
+
             finalReviewStats = {
               averageRating: Math.round(avgRating * 10) / 10,
               totalReviews: productReviews.length,
@@ -455,29 +455,29 @@ const ProductPage = () => {
           else if ((product.averageRating && product.totalReviews) || (product.rating && product.reviewCount)) {
             const avgRating = product.averageRating || product.rating;
             const totalReviews = product.totalReviews || product.reviewCount;
-            
+
             // Generate plausible star breakdown
-            const starBreakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            const starBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
             const mainRating = Math.round(avgRating);
-            
+
             starBreakdown[mainRating] = Math.floor(totalReviews * 0.6);
             if (mainRating > 1) starBreakdown[mainRating - 1] = Math.floor(totalReviews * 0.2);
             if (mainRating < 5) starBreakdown[mainRating + 1] = Math.floor(totalReviews * 0.15);
             if (mainRating > 2) starBreakdown[mainRating - 2] = Math.floor(totalReviews * 0.03);
             if (mainRating < 4) starBreakdown[mainRating + 2] = Math.floor(totalReviews * 0.02);
-            
+
             finalReviewStats = {
               averageRating: avgRating,
               totalReviews: totalReviews,
               starBreakdown
             };
           }
-          
+
           // Always add sample reviews for reference
           const sampleReviews = generateSampleReviews(product.name, false);
           combinedReviews = [...combinedReviews, ...sampleReviews];
         }
-        
+
         setReviews(combinedReviews);
         setReviewStats(finalReviewStats);
       } else {
@@ -486,18 +486,18 @@ const ProductPage = () => {
         setReviewStats({
           averageRating: 0,
           totalReviews: 0,
-          starBreakdown: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+          starBreakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
         });
       }
 
     } catch (err) {
       console.error('Error loading product:', err);
       setError(err.message);
-      
+
       // Redirect to products page if product not found or server error
-      if (err.message.includes('not found') || 
-          err.message.includes('Server error') ||
-          err.message.includes('Product not found')) {
+      if (err.message.includes('not found') ||
+        err.message.includes('Server error') ||
+        err.message.includes('Product not found')) {
         console.log('Redirecting to products page due to product not found');
         setTimeout(() => {
           navigate('/products');
@@ -557,12 +557,12 @@ const ProductPage = () => {
 
   if (loading) {
     return (
-      <div 
+      <div
         className="flex justify-center items-center h-screen"
         style={{ backgroundColor: '#FEFCF3' }}
       >
         <div className="text-center">
-          <div 
+          <div
             className="animate-spin rounded-full h-32 w-32 border-b-4 mx-auto"
             style={{ borderColor: '#FF6B6B' }}
           ></div>
@@ -576,7 +576,7 @@ const ProductPage = () => {
 
   if (error) {
     return (
-      <div 
+      <div
         className="flex justify-center items-center h-screen"
         style={{ backgroundColor: '#FEFCF3' }}
       >
@@ -586,7 +586,7 @@ const ProductPage = () => {
             Product Not Found
           </h1>
           <p className="mb-6 text-lg" style={{ color: '#2C3E50', opacity: 0.7 }}>{error}</p>
-          <button 
+          <button
             onClick={() => navigate('/products')}
             className="px-8 py-3 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
             style={{ backgroundColor: '#FF6B6B' }}
@@ -600,7 +600,7 @@ const ProductPage = () => {
 
   if (!product) {
     return (
-      <div 
+      <div
         className="flex justify-center items-center h-screen"
         style={{ backgroundColor: '#FEFCF3' }}
       >
@@ -613,22 +613,28 @@ const ProductPage = () => {
 
   // Collect main product images (max 5 images)
   const productImages = [];
-  
+
   // Check if this is an internal component from database
   const isInternalComponent = product && product.category === 'internal-components';
-  
+
   if (isInternalComponent) {
-    // For internal components from database, use the images array directly
-    // The database already has: images: [main, variant1, variant2, variant3]
+    // For internal components from database, use the images array or compose from image + galleryImages
     if (product.images && product.images.length > 0) {
       productImages.push(...product.images.slice(0, 5));
-    } else if (product.image) {
-      // Fallback to single image if images array is empty
-      productImages.push(product.image);
+    } else {
+      // Fallback: Combine main image and gallery images
+      if (product.image) {
+        productImages.push(product.image);
+      }
+      if (product.galleryImages && product.galleryImages.length > 0) {
+        // Filter out any potential duplicates of the main image
+        const newGalleryImages = product.galleryImages.filter(img => img !== product.image);
+        productImages.push(...newGalleryImages);
+      }
     }
   } else {
     // For regular products, check images array first, then galleryImages, then generate variants
-    
+
     // If product has images array (like drums-percussion), use it directly
     if (product.images && product.images.length > 0) {
       productImages.push(...product.images.slice(0, 5));
@@ -638,7 +644,7 @@ const ProductPage = () => {
       if (product.image) {
         productImages.push(product.image);
       }
-      
+
       // Add main product gallery images (only skip actual technical component images for regular products)
       if (product.galleryImages && product.galleryImages.length > 0) {
         product.galleryImages.forEach(img => {
@@ -656,19 +662,19 @@ const ProductPage = () => {
               img.includes('Shell') || img.includes('Rod') || img.includes('Lug')
             )
           );
-          
+
           if (!isComponentImage && productImages.length < 5 && !productImages.includes(img)) {
             productImages.push(img);
           }
         });
       }
-      
+
       // Only add variant images if we really need more and they exist
       // Skip automatic variant generation to avoid showing duplicate images
       // Only use images that are explicitly provided
     }
   }
-  
+
   // Limit to 5 images and process URLs
   const allImages = productImages.slice(0, 5).filter(Boolean).map(img => getImageUrl(img));
 
@@ -682,14 +688,14 @@ const ProductPage = () => {
 
 
   return (
-    <div 
+    <div
       className="min-h-screen py-4 sm:py-8"
       style={{ backgroundColor: '#FEFCF3' }}
     >
       {/* Breadcrumb Navigation - Enhanced Mobile */}
       <div className="container mx-auto px-3 sm:px-4 mb-3 sm:mb-6">
         <nav className="flex items-center space-x-2 text-xs sm:text-sm overflow-x-auto pb-2 sm:pb-0">
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="transition-colors duration-200 whitespace-nowrap flex-shrink-0 touch-target py-1"
             style={{ color: '#2C3E50' }}
@@ -699,7 +705,7 @@ const ProductPage = () => {
             Home
           </button>
           <span style={{ color: '#2C3E50', opacity: 0.5 }} className="flex-shrink-0">→</span>
-          <button 
+          <button
             onClick={() => navigate('/products')}
             className="transition-colors duration-200 whitespace-nowrap flex-shrink-0 touch-target py-1"
             style={{ color: '#2C3E50' }}
@@ -714,9 +720,9 @@ const ProductPage = () => {
       </div>
 
       <div className="container mx-auto px-2 sm:px-4 lg:px-6">
-        <div 
+        <div
           className="max-w-screen-2xl mx-auto rounded-lg sm:rounded-xl lg:rounded-3xl shadow-md sm:shadow-lg lg:shadow-2xl p-3 sm:p-6 lg:p-8 border sm:border-2"
-          style={{ 
+          style={{
             backgroundColor: 'white',
             borderColor: '#F8F9FA'
           }}
@@ -739,12 +745,12 @@ const ProductPage = () => {
                           borderColor: selectedImage === index ? '#FF6B6B' : '#E5E7EB'
                         }}
                       >
-                        <img 
-                          src={img} 
+                        <img
+                          src={img}
                           alt={`${product.name} view ${index + 1}`}
-                          className="w-full h-full object-contain p-0.5 sm:p-1" 
-                          onError={handleImgError} 
-                          data-tries="0" 
+                          className="w-full h-full object-contain p-0.5 sm:p-1"
+                          onError={handleImgError}
+                          data-tries="0"
                         />
                       </button>
                     ))}
@@ -752,9 +758,9 @@ const ProductPage = () => {
                 )}
 
                 {/* Main Product Image - Enhanced Mobile */}
-                <div 
+                <div
                   className="flex-1 overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md sm:shadow-lg border-2 relative bg-white aspect-square"
-                  style={{ 
+                  style={{
                     backgroundColor: '#FFFFFF',
                     borderColor: '#E5E7EB',
                     border: '2px solid #E5E7EB'
@@ -769,39 +775,37 @@ const ProductPage = () => {
                         style={{ backgroundColor: '#F8F9FA' }}
                       >
                         <Heart
-                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${
-                            isInWishlist(product._id || product.id)
+                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${isInWishlist(product._id || product.id)
                               ? 'scale-110'
                               : 'group-hover/wishlist:scale-110'
-                          }`}
-                          style={{ 
+                            }`}
+                          style={{
                             color: isInWishlist(product._id || product.id) ? '#FF6B6B' : '#2C3E50',
                             fill: isInWishlist(product._id || product.id) ? '#FF6B6B' : 'none'
                           }}
                         />
                       </button>
-                      
+
                       <button
                         onClick={handleToggleComparison}
                         className="p-1.5 sm:p-2 lg:p-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110 group/compare touch-target"
-                        style={{ 
+                        style={{
                           backgroundColor: isInComparison(product._id || product.id) ? '#20B2AA' : '#F8F9FA'
                         }}
                       >
                         <Scale
-                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${
-                            isInComparison(product._id || product.id)
+                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${isInComparison(product._id || product.id)
                               ? 'scale-110'
                               : 'group-hover/compare:scale-110'
-                          }`}
-                          style={{ 
+                            }`}
+                          style={{
                             color: isInComparison(product._id || product.id) ? 'white' : '#2C3E50'
                           }}
                         />
                       </button>
                     </div>
                   )}
-                  
+
                   <img
                     src={allImages[selectedImage] || getImageUrl('/images/DJSpeaker1.png')}
                     alt={product.name}
@@ -811,7 +815,7 @@ const ProductPage = () => {
                   />
                 </div>
               </div>
-              
+
             </div>
             {/* Enhanced Product Details - Mobile Optimized */}
             <div className="space-y-3 sm:space-y-4 lg:space-y-6">
@@ -819,14 +823,14 @@ const ProductPage = () => {
               <div>
                 {/* Brand Display */}
                 {product.brand && (
-                  <div 
+                  <div
                     className="text-xs sm:text-sm font-bold uppercase tracking-wider mb-2 sm:mb-3"
                     style={{ color: '#20B2AA' }}
                   >
                     {product.brand}
                   </div>
                 )}
-                <div 
+                <div
                   className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold mb-2 sm:mb-3"
                   style={{ backgroundColor: '#20B2AA', color: 'white' }}
                 >
@@ -837,9 +841,9 @@ const ProductPage = () => {
               </div>
 
               {/* Enhanced Pricing - Mobile Optimized */}
-              <div 
+              <div
                 className="p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl lg:rounded-2xl border-2"
-                style={{ 
+                style={{
                   backgroundColor: '#F8F9FA',
                   borderColor: '#F8F9FA'
                 }}
@@ -855,7 +859,7 @@ const ProductPage = () => {
                   )}
                 </div>
                 {product.originalPrice && product.originalPrice !== (product.discountedPrice || product.price) && (
-                  <div 
+                  <div
                     className="inline-block px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg lg:rounded-xl font-bold text-xs sm:text-sm"
                     style={{ backgroundColor: '#FF6B6B', color: 'white' }}
                   >
@@ -904,9 +908,9 @@ const ProductPage = () => {
               </div>
 
               {/* Enhanced Features - Mobile Optimized */}
-              <div 
+              <div
                 className="p-3 sm:p-4 lg:p-6 rounded-lg sm:rounded-xl lg:rounded-2xl border-2"
-                style={{ 
+                style={{
                   backgroundColor: 'white',
                   borderColor: '#F8F9FA'
                 }}
@@ -916,7 +920,7 @@ const ProductPage = () => {
                 </h3>
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div 
+                    <div
                       className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: '#20B2AA' }}
                     >
@@ -925,7 +929,7 @@ const ProductPage = () => {
                     <span className="text-sm sm:text-base" style={{ color: '#2C3E50' }}>Free Delivery on orders above ₹999</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div 
+                    <div
                       className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: '#FF6B6B' }}
                     >
@@ -936,7 +940,7 @@ const ProductPage = () => {
                     <span className="text-sm sm:text-base" style={{ color: '#2C3E50' }}>100% Secure Payment</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div 
+                    <div
                       className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: '#20B2AA' }}
                     >
@@ -947,7 +951,7 @@ const ProductPage = () => {
                     <span className="text-sm sm:text-base" style={{ color: '#2C3E50' }}>7 Days Easy Return & Exchange</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div 
+                    <div
                       className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: '#FF6B6B' }}
                     >
@@ -963,9 +967,9 @@ const ProductPage = () => {
           </div>
 
           {/* Key Features Section - Full Width with Mobile Optimization */}
-          <div 
+          <div
             className="mt-4 sm:mt-6 lg:mt-12 p-3 sm:p-5 lg:p-9 rounded-lg sm:rounded-xl lg:rounded-2xl border-2"
-            style={{ 
+            style={{
               backgroundColor: '#FEFCF3',
               borderColor: '#F8F9FA'
             }}
@@ -975,7 +979,7 @@ const ProductPage = () => {
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 lg:gap-8 xl:gap-10">
               {/* Feature 1 */}
-              <div 
+              <div
                 className="flex flex-col items-center text-center gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 touch-target"
                 style={{ backgroundColor: 'white' }}
               >
@@ -989,9 +993,9 @@ const ProductPage = () => {
                   <p className="text-xs sm:text-sm lg:text-base text-gray-600 leading-relaxed">High-quality sound experience</p>
                 </div>
               </div>
-              
+
               {/* Feature 2 */}
-              <div 
+              <div
                 className="flex flex-col items-center text-center gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 touch-target"
                 style={{ backgroundColor: 'white' }}
               >
@@ -1005,9 +1009,9 @@ const ProductPage = () => {
                   <p className="text-xs sm:text-sm lg:text-base text-gray-600 leading-relaxed">Long battery & features</p>
                 </div>
               </div>
-              
+
               {/* Feature 3 */}
-              <div 
+              <div
                 className="flex flex-col items-center text-center gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 touch-target"
                 style={{ backgroundColor: 'white' }}
               >
@@ -1021,9 +1025,9 @@ const ProductPage = () => {
                   <p className="text-xs sm:text-sm lg:text-base text-gray-600 leading-relaxed">Sleek & comfortable fit</p>
                 </div>
               </div>
-              
+
               {/* Feature 4 */}
-              <div 
+              <div
                 className="flex flex-col items-center text-center gap-3 sm:gap-4 p-4 sm:p-6 lg:p-8 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 touch-target"
                 style={{ backgroundColor: 'white' }}
               >
@@ -1043,21 +1047,21 @@ const ProductPage = () => {
 
         {/* Customer Reviews Section - Enhanced Mobile */}
         <div className="mt-8 sm:mt-12 lg:mt-16">
-          <div 
+          <div
             className="rounded-lg sm:rounded-xl lg:rounded-2xl shadow-md sm:shadow-lg border p-3 sm:p-6 lg:p-8"
-            style={{ 
+            style={{
               backgroundColor: 'white',
               borderColor: '#F8F9FA'
             }}
           >
-            <ReviewsSection 
-               product={product}
-               reviews={reviews}
-               setReviews={setReviews}
-               reviewStats={reviewStats}
-               setReviewStats={setReviewStats}
-               onReviewSubmitted={loadProduct}
-             />
+            <ReviewsSection
+              product={product}
+              reviews={reviews}
+              setReviews={setReviews}
+              reviewStats={reviewStats}
+              setReviewStats={setReviewStats}
+              onReviewSubmitted={loadProduct}
+            />
           </div>
         </div>
       </div>
