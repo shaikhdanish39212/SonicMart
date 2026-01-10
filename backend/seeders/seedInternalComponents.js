@@ -10,10 +10,10 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 function imageToProductName(filename) {
   // Remove file extension
   const baseName = filename.replace(/\.(png|jpg|jpeg)$/i, '');
-  
+
   // Remove version numbers (like .1, .2, .3)
   const nameWithoutVersion = baseName.replace(/\.\d+$/, '');
-  
+
   // Split by underscore and capitalize each word
   return nameWithoutVersion
     .split('_')
@@ -51,7 +51,7 @@ function generateDescription(name, category) {
     'headphones': `Premium ${name.toLowerCase()} component for professional headphones. Engineered for exceptional audio quality and comfort.`,
     'speakers': `High-quality ${name.toLowerCase()} for speaker systems. Professional component designed for superior sound reproduction.`
   };
-  
+
   return descriptions[category] || `Professional ${name.toLowerCase()} component for audio equipment.`;
 }
 
@@ -66,7 +66,7 @@ function getBrand(category) {
     'headphones': 'HeadGear Parts',
     'speakers': 'BoomBox Components'
   };
-  
+
   return brands[category] || 'AudioPro Components';
 }
 
@@ -74,30 +74,30 @@ async function seedInternalComponents() {
   try {
     console.log('🔧 SEEDING INTERNAL COMPONENTS');
     console.log('==============================');
-    
+
     await mongoose.connect(process.env.MONGODB_URI);
-    
+
     // Check current product count
     const currentCount = await Product.countDocuments();
     console.log(`Current products in database: ${currentCount}`);
-    
+
     // Get all internal component images
     const imagesDir = path.join(__dirname, '../../myproject/public/images/internal_components/images');
-    const imageFiles = fs.readdirSync(imagesDir).filter(file => 
+    const imageFiles = fs.readdirSync(imagesDir).filter(file =>
       /\.(png|jpg|jpeg)$/i.test(file) && !file.includes('.1.') && !file.includes('.2.') && !file.includes('.3.')
     );
-    
+
     console.log(`Found ${imageFiles.length} main internal component images`);
-    
+
     const products = [];
     let skuCounter = 1;
-    
+
     for (const imageFile of imageFiles) {
       const category = getCategory(imageFile);
       const name = imageToProductName(imageFile);
       const brand = getBrand(category);
       const description = generateDescription(name, category);
-      
+
       // Get gallery images (versions .1, .2, .3)
       const baseName = imageFile.replace(/\.(png|jpg|jpeg)$/i, '');
       const galleryImages = [];
@@ -107,7 +107,7 @@ async function seedInternalComponents() {
           galleryImages.push(`/images/internal_components/images/${galleryFile}`);
         }
       }
-      
+
       // Generate price based on category
       const basePrices = {
         'dj-speakers': 89.99,
@@ -118,19 +118,20 @@ async function seedInternalComponents() {
         'headphones': 24.99,
         'speakers': 39.99
       };
-      
+
       const basePrice = basePrices[category] || 29.99;
       const price = basePrice + (Math.random() * 50); // Add some variation
       const originalPrice = price * 1.2; // 20% markup for original price
       const discount = Math.floor(Math.random() * 20) + 5; // 5-25% discount
-      
+
       const product = {
         name,
         description,
         price: Math.round(price * 100) / 100,
         originalPrice: Math.round(originalPrice * 100) / 100,
         discount,
-        category,
+        category: 'internal-components', // All internal components go in this category
+        subcategory: category, // Store original category as subcategory for filtering
         brand,
         image: `/images/internal_components/images/${imageFile}`,
         galleryImages,
@@ -152,33 +153,33 @@ async function seedInternalComponents() {
         isActive: true,
         isFeatured: Math.random() > 0.8 // 20% chance of being featured
       };
-      
+
       products.push(product);
     }
-    
+
     console.log(`\nCreated ${products.length} internal component products`);
-    
+
     // Insert products into database
     const insertedProducts = await Product.insertMany(products);
     console.log(`✅ Successfully inserted ${insertedProducts.length} internal components`);
-    
+
     // Show summary by category
     const categorySummary = {};
     products.forEach(product => {
       categorySummary[product.category] = (categorySummary[product.category] || 0) + 1;
     });
-    
+
     console.log('\n📊 INTERNAL COMPONENTS BY CATEGORY:');
     Object.entries(categorySummary).forEach(([category, count]) => {
       console.log(`  ${category}: ${count} components`);
     });
-    
+
     const finalCount = await Product.countDocuments();
     console.log(`\n📈 DATABASE UPDATED:`);
     console.log(`  Before: ${currentCount} products`);
     console.log(`  After: ${finalCount} products`);
     console.log(`  Added: ${finalCount - currentCount} products`);
-    
+
   } catch (error) {
     console.error('Error seeding internal components:', error);
   } finally {
