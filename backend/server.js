@@ -248,7 +248,6 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/footer', require('./routes/footer')); // Footer functionality (newsletter, contact)
 app.use('/api/returns', require('./routes/returns')); // Returns and refunds functionality
 app.use('/api/realtime', require('./routes/realtime')); // Real-time admin panel routes
-app.use('/api/realtime', require('./routes/realtime')); // Real-time admin panel routes
 app.use('/api/logs', require('./routes/logs')); // System logs management
 app.use('/api/errors', require('./routes/errors')); // Frontend error logging
 
