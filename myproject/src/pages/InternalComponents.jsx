@@ -10,7 +10,7 @@ const InternalComponents = () => {
   const { addToCart } = useContext(CartContext);
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { comparisonList, addToComparison, removeFromComparison } = useProductComparison();
-  
+
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ const InternalComponents = () => {
   const [categories, setCategories] = useState(['All']);
   const [types, setTypes] = useState(['All']);
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const searchQuery = searchParams.get('search') || '';
   const categoryQuery = searchParams.get('category') || '';
   const typeQuery = searchParams.get('type') || '';
@@ -31,23 +31,29 @@ const InternalComponents = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await productsAPI.getProductsByCategory("internal-components", {
         page: 1,
         limit: 300
       });
-      
+
       // Check if response has the expected structure
       if (!response.data || !response.data.products) {
         throw new Error('Invalid API response structure');
       }
-      
+
       const normalizedProducts = response.data.products.map(product => {
         // For internal components, use the existing images array directly
         // The seeder already sets up: images: [main, variant1, variant2, variant3]
-        const allImages = product.images || [];
+        let allImages = product.images || [];
+
+        // If images array is empty, try to use singular image property
+        if (allImages.length === 0 && (product.image || product.imageUrl)) {
+          allImages = [product.image || product.imageUrl];
+        }
+
         const mainImage = allImages[0] || "placeholder.png";
-        
+
         return {
           ...product,
           rating: product.averageRating || product.rating || 0,
@@ -56,16 +62,16 @@ const InternalComponents = () => {
           images: allImages.length > 0 ? allImages : ["placeholder.png"]
         };
       });
-      
+
       setProducts(normalizedProducts);
-      
+
       // Extract unique categories and types for filtering
       const uniqueCategories = [...new Set(normalizedProducts.map(p => p.subcategory || p.subCategory || 'General').filter(Boolean))];
       const uniqueTypes = [...new Set(normalizedProducts.map(p => p.type || 'Component').filter(Boolean))];
-      
+
       setCategories(['All', ...uniqueCategories]);
       setTypes(['All', ...uniqueTypes]);
-      
+
     } catch (error) {
       console.error("Error loading internal components:", error);
       setError("Failed to load internal components. Please try again.");
@@ -85,14 +91,14 @@ const InternalComponents = () => {
 
     // Apply category filter
     if (selectedCategory && selectedCategory !== 'all') {
-      filtered = filtered.filter(product => 
+      filtered = filtered.filter(product =>
         (product.subcategory || product.subCategory || '').toLowerCase().includes(selectedCategory.toLowerCase())
       );
     }
 
     // Apply type filter
     if (selectedType && selectedType !== 'all') {
-      filtered = filtered.filter(product => 
+      filtered = filtered.filter(product =>
         (product.type || '').toLowerCase().includes(selectedType.toLowerCase())
       );
     }
@@ -212,7 +218,7 @@ const InternalComponents = () => {
             <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">⚠️</div>
             <h3 className="text-lg sm:text-xl font-semibold text-red-800 mb-2">Oops! Something went wrong</h3>
             <p className="text-red-600 mb-3 sm:mb-4 text-sm sm:text-base">{error}</p>
-            <button 
+            <button
               onClick={loadProducts}
               className="w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-2 bg-brand-coral text-white rounded-lg hover:bg-brand-coral/90 transition-colors text-sm sm:text-base"
             >
@@ -242,7 +248,7 @@ const InternalComponents = () => {
             </span>
           </h1>
           <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-3xl mx-auto mb-1 sm:mb-2 lg:mb-3 px-2 sm:px-0">
-            {searchQuery 
+            {searchQuery
               ? `Found ${filteredProducts.length} components matching your search`
               : `Discover our complete collection of ${filteredProducts.length} premium internal components for professional audio equipment`
             }
@@ -294,7 +300,7 @@ const InternalComponents = () => {
                 <option value="popular">Most Popular</option>
               </select>
             </div>
-            
+
             {/* Results Count - Mobile Optimized */}
             <div className="text-gray-600 text-xs sm:text-sm whitespace-nowrap">
               <span className="font-semibold text-gray-800">{filteredProducts.length}</span> of{' '}
