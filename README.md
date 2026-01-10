@@ -1,6 +1,5 @@
 # 🎧 SonicMart - Sound Accessories & Components
 
-![SonicMart Banner](https://via.placeholder.com/1200x400/1a1a1a/ffffff?text=SonicMart+Accessories+%26+Components)
 
 > **The Ultimate Marketplace for Audiophiles & Builders.** A specialized e-commerce platform for high-quality sound accessories and internal audio components.
 
