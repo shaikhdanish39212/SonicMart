@@ -8,7 +8,7 @@ const getRazorpayInstance = () => {
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     throw new Error('Razorpay credentials not found in environment variables');
   }
-  
+
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -22,6 +22,10 @@ const createOrder = async (req, res) => {
   try {
     const { amount, currency = 'INR', receipt, notes } = req.body;
 
+    console.log('💰 [CREATE ORDER] Request received:', { amount, currency, receipt, notes });
+    console.log('🔑 [CREATE ORDER] RAZORPAY_KEY_ID exists:', !!process.env.RAZORPAY_KEY_ID);
+    console.log('🔑 [CREATE ORDER] RAZORPAY_KEY_SECRET exists:', !!process.env.RAZORPAY_KEY_SECRET);
+
     // Validate amount
     if (!amount || amount < 1) {
       return res.status(400).json({
@@ -32,7 +36,7 @@ const createOrder = async (req, res) => {
 
     // Create Razorpay order
     const options = {
-      amount: amount * 100, // Razorpay expects amount in paise
+      amount: Math.round(amount * 100), // Razorpay expects amount in paise (integer)
       currency,
       receipt: receipt || `order_${Date.now()}`,
       notes: notes || {}
@@ -135,7 +139,7 @@ const verifyPayment = async (req, res) => {
       try {
         // Use the Order model's built-in orderNumber generation to avoid duplicates
         const Order = require('../models/Order');
-        
+
         // Debug orderData structure
         console.log('=== ORDER DATA DEBUG ===');
         console.log('orderData:', JSON.stringify(orderData, null, 2));
@@ -143,7 +147,7 @@ const verifyPayment = async (req, res) => {
         if (orderData.items && orderData.items.length > 0) {
           console.log('First item structure:', JSON.stringify(orderData.items[0], null, 2));
         }
-        
+
         // Process order items to include required fields
         const processedItems = orderData.items.map((item, index) => {
           console.log(`Processing item ${index}:`, {
@@ -154,7 +158,7 @@ const verifyPayment = async (req, res) => {
             quantity: item.quantity,
             hasImage: !!item.image
           });
-          
+
           return {
             product: item.product,
             name: item.name,
@@ -191,10 +195,10 @@ const verifyPayment = async (req, res) => {
 
         console.log('Saving order to database...', { items: processedItems.length, coupon: orderData.couponCode });
         const savedOrder = await newOrder.save();
-        console.log('Order saved successfully:', { 
-          orderId: savedOrder._id, 
+        console.log('Order saved successfully:', {
+          orderId: savedOrder._id,
           orderNumber: savedOrder.orderNumber,
-          coupon: savedOrder.couponCode 
+          coupon: savedOrder.couponCode
         });
 
         // Handle coupon usage tracking for Razorpay payments
@@ -215,7 +219,7 @@ const verifyPayment = async (req, res) => {
               },
               { new: true }
             );
-            
+
             if (couponUpdate) {
               console.log(`✅ [RAZORPAY] Coupon ${orderData.couponCode} usage incremented to ${couponUpdate.usageCount}/${couponUpdate.usageLimit}`);
             } else {
@@ -264,7 +268,7 @@ const verifyPayment = async (req, res) => {
         });
       } catch (dbError) {
         console.error('❌ [RAZORPAY] Database error while creating order:', dbError);
-        
+
         // Return failure for order creation issues
         return res.status(500).json({
           status: 'error',
@@ -289,11 +293,11 @@ const verifyPayment = async (req, res) => {
     }
   } catch (error) {
     console.error('❌ Verify payment error:', error);
-    
+
     // Provide more specific error messages based on error type
     let errorMessage = 'Payment verification failed';
     let statusCode = 500;
-    
+
     if (error.message.includes('signature')) {
       errorMessage = 'Payment signature verification failed';
       statusCode = 400;
@@ -307,7 +311,7 @@ const verifyPayment = async (req, res) => {
       errorMessage = 'Order creation failed after payment verification';
       statusCode = 500;
     }
-    
+
     res.status(statusCode).json({
       status: 'error',
       message: errorMessage,
@@ -323,9 +327,9 @@ const verifyPayment = async (req, res) => {
 const getPaymentDetails = async (req, res) => {
   try {
     const { paymentId } = req.params;
-    
+
     const payment = await razorpay.payments.fetch(paymentId);
-    
+
     res.json({
       status: 'success',
       data: payment

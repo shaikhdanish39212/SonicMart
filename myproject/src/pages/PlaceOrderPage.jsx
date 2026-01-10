@@ -13,11 +13,11 @@ const PlaceOrderPage = () => {
   const { user, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Get coupon data and pricing from navigation state
   const appliedCoupon = location.state?.appliedCoupon || null;
   const pricingFromCart = location.state || {};
-  
+
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
     firstName: '',
@@ -30,11 +30,11 @@ const PlaceOrderPage = () => {
     pincode: '',
     country: ''
   });
-  
+
   const [paymentMethod, setPaymentMethod] = useState('cod');
 
 
-  
+
   const [orderNotes, setOrderNotes] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState({});
@@ -45,8 +45,8 @@ const PlaceOrderPage = () => {
   // Check authentication - redirect to login if not authenticated
   React.useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login', { 
-        state: { 
+      navigate('/login', {
+        state: {
           from: '/place-order',
           message: 'Please log in to place an order'
         }
@@ -84,40 +84,40 @@ const PlaceOrderPage = () => {
   // Check form validity without side effects (for use in render)
   const isFormValid = () => {
     // Check required shipping fields
-    if (!shippingInfo.firstName.trim() || !shippingInfo.lastName.trim() || 
-        !shippingInfo.email.trim() || !shippingInfo.phone.trim() || 
-        !shippingInfo.address.trim() || !shippingInfo.city.trim() || 
-        !shippingInfo.state.trim() || !shippingInfo.pincode.trim()) {
+    if (!shippingInfo.firstName.trim() || !shippingInfo.lastName.trim() ||
+      !shippingInfo.email.trim() || !shippingInfo.phone.trim() ||
+      !shippingInfo.address.trim() || !shippingInfo.city.trim() ||
+      !shippingInfo.state.trim() || !shippingInfo.pincode.trim()) {
       return false;
     }
-    
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(shippingInfo.email)) {
       return false;
     }
-    
+
     // Basic phone validation
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(shippingInfo.phone)) {
       return false;
     }
-    
+
     // Basic pincode validation
     const pincodeRegex = /^[0-9]{6}$/;
     if (!pincodeRegex.test(shippingInfo.pincode)) {
       return false;
     }
-    
 
-    
+
+
     return true;
   };
 
   // Form validation with error setting - only called on submit
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Shipping validation
     if (!shippingInfo.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!shippingInfo.lastName.trim()) newErrors.lastName = 'Last name is required';
@@ -127,30 +127,30 @@ const PlaceOrderPage = () => {
     if (!shippingInfo.city.trim()) newErrors.city = 'City is required';
     if (!shippingInfo.state.trim()) newErrors.state = 'State is required';
     if (!shippingInfo.pincode.trim()) newErrors.pincode = 'Pincode is required';
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (shippingInfo.email && !emailRegex.test(shippingInfo.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     // Phone validation
     const phoneRegex = /^[0-9]{10}$/;
     if (shippingInfo.phone && !phoneRegex.test(shippingInfo.phone)) {
       newErrors.phone = 'Please enter a valid 10-digit phone number';
     }
-    
+
     // Pincode validation
     const pincodeRegex = /^[0-9]{6}$/;
     if (shippingInfo.pincode && !pincodeRegex.test(shippingInfo.pincode)) {
       newErrors.pincode = 'Please enter a valid 6-digit pincode';
     }
-    
 
-    
+
+
     // No additional validation required for Razorpay as it handles all payment details
     // Razorpay will handle payment validation on their secure platform
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -158,20 +158,20 @@ const PlaceOrderPage = () => {
   // Handle form submission and payment
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsProcessing(true);
-    
+
     try {
       // Generate order ID
       const orderId = 'ORD' + Date.now();
-      
+
       // Calculate final amount including COD fees if applicable
       const finalAmountWithFees = finalTotal + (paymentMethod === 'cod' ? 20 : 0);
-      
+
       // Prepare order details for payment processing
       const orderDetails = {
         orderId,
@@ -199,7 +199,7 @@ const PlaceOrderPage = () => {
       } else {
         throw new Error('Invalid payment method selected.');
       }
-        
+
       await completeOrder(paymentResult, orderDetails, orderId);
     } catch (error) {
       console.error('Order placement failed:', error);
@@ -273,7 +273,7 @@ const PlaceOrderPage = () => {
 
       // Clear cart on successful payment
       clearCart();
-      
+
       // Prepare items with consistent structure for confirmation page
       const confirmationItems = cart.map(item => ({
         id: item._id || item.id,
@@ -283,7 +283,7 @@ const PlaceOrderPage = () => {
         price: item.price,
         product: item._id || item.id
       }));
-      
+
       // Navigate to order confirmation with order and payment details
       const finalOrderId = backendOrder?.data?.order?.orderNumber || paymentResult.orderNumber || orderId;
       console.log('🎯 [ORDER CONFIRMATION] Navigating with data:', {
@@ -295,9 +295,9 @@ const PlaceOrderPage = () => {
         hasPaymentOrderNumber: !!paymentResult.orderNumber,
         fallbackOrderId: orderId
       });
-      
-      navigate('/order-confirmation', { 
-        state: { 
+
+      navigate('/order-confirmation', {
+        state: {
           orderId: finalOrderId,
           orderTotal: finalTotal,
           items: confirmationItems,
@@ -318,7 +318,7 @@ const PlaceOrderPage = () => {
   const handlePaymentSuccess = async (paymentResult) => {
     try {
       console.log('🎯 [RAZORPAY SUCCESS] Payment result received:', paymentResult);
-      
+
       const orderId = 'ORD' + Date.now();
       const orderDetails = {
         orderId,
@@ -329,7 +329,7 @@ const PlaceOrderPage = () => {
         taxPrice: 0,
         shippingPrice: shippingCost
       };
-      
+
       await completeOrder(paymentResult, orderDetails, orderId);
     } catch (error) {
       console.error('Payment order completion failed:', error);
@@ -340,7 +340,8 @@ const PlaceOrderPage = () => {
   // Handle payment failure
   const handlePaymentFailure = (error) => {
     console.error('Payment failed:', error);
-    alert(error.message || 'Payment failed. Please try again.');
+    // RazorpayCheckout passes { error: 'message' }, standard Error has .message
+    alert(error.error || error.message || 'Payment failed. Please try again.');
   };
 
   // Handle input changes
@@ -350,7 +351,7 @@ const PlaceOrderPage = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -375,12 +376,12 @@ const PlaceOrderPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0L17 18M9.5 18h7" />
                 </svg>
               </div>
-              
+
               <h1 className="text-3xl font-bold mb-4" style={{ color: '#2C3E50' }}>No Items to Order</h1>
               <p className="text-gray-600 mb-8 text-lg leading-relaxed">Your cart is empty. Add some amazing products before placing an order.</p>
-              
-              <Link 
-                to="/products" 
+
+              <Link
+                to="/products"
                 className="inline-flex items-center gap-3 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl hover:brightness-110"
                 style={{ background: 'linear-gradient(to right, #FF6B6B, #20B2AA)' }}
               >
@@ -408,19 +409,19 @@ const PlaceOrderPage = () => {
               <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'linear-gradient(to right, #FF6B6B, #20B2AA)' }}></div>
               <span className="text-xs sm:text-sm font-semibold text-gray-700">SECURE CHECKOUT</span>
             </div>
-            
+
             {/* Main Title */}
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">
               <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
                 Place Your Order
               </span>
             </h1>
-            
+
             {/* Subtitle */}
             <p className="text-sm md:text-base text-gray-600 max-w-3xl mx-auto mb-4 sm:mb-6">
               Complete your purchase securely with our encrypted checkout process
             </p>
-            
+
             {/* Order Statistics */}
             <div className="flex flex-wrap justify-center gap-4 md:gap-6">
               <div className="text-center">
@@ -456,7 +457,7 @@ const PlaceOrderPage = () => {
                   </div>
                   Shipping Information
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
@@ -487,7 +488,7 @@ const PlaceOrderPage = () => {
                     />
                     {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
                     <input
@@ -505,7 +506,7 @@ const PlaceOrderPage = () => {
                     />
                     {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
                     <input
@@ -523,7 +524,7 @@ const PlaceOrderPage = () => {
                     />
                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
                     <input
@@ -541,7 +542,7 @@ const PlaceOrderPage = () => {
                     />
                     {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
                     <textarea
@@ -559,7 +560,7 @@ const PlaceOrderPage = () => {
                     />
                     {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                     <div className="relative">
@@ -615,7 +616,7 @@ const PlaceOrderPage = () => {
                     </div>
                     {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">State *</label>
                     <div className="relative">
@@ -676,7 +677,7 @@ const PlaceOrderPage = () => {
                     </div>
                     {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">Pincode *</label>
                     <input
@@ -694,7 +695,7 @@ const PlaceOrderPage = () => {
                     />
                     {errors.pincode && <p className="text-red-500 text-xs mt-1">{errors.pincode}</p>}
                   </div>
-                  
+
                   <div>
                     <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
                     <div className="relative">
@@ -731,7 +732,7 @@ const PlaceOrderPage = () => {
                   </div>
                   Payment Details
                 </h2>
-                
+
                 {/* Streamlined Payment Options - Two Clear Choices */}
                 <div className="max-w-4xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -755,7 +756,7 @@ const PlaceOrderPage = () => {
                             </svg>
                           )}
                         </div>
-                        
+
                         <div className="text-center">
                           <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -772,7 +773,7 @@ const PlaceOrderPage = () => {
                         </div>
                       </div>
                     </label>
-                    
+
                     {/* COD Option - Enhanced Visual Design */}
                     <label className={`group cursor-pointer relative overflow-hidden rounded-3xl transition-all duration-500 transform hover:scale-[1.02] ${paymentMethod === 'cod' ? 'ring-4 ring-teal-200 shadow-2xl' : 'hover:shadow-xl'}`}>
                       <input
@@ -793,7 +794,7 @@ const PlaceOrderPage = () => {
                             </svg>
                           )}
                         </div>
-                        
+
                         <div className="text-center">
                           <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -812,9 +813,9 @@ const PlaceOrderPage = () => {
                     </label>
                   </div>
                 </div>
-                
 
-                
+
+
                 {/* COD Details */}
                 {paymentMethod === 'cod' && (
                   <div className="mt-6 p-6 border rounded-2xl" style={{ borderColor: '#20B2AA', background: 'linear-gradient(135deg, #FEFCF3 0%, #F8F9FA 100%)' }}>
@@ -871,14 +872,14 @@ const PlaceOrderPage = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-md p-3 sm:p-4 sticky top-24 border" style={{ borderColor: '#20B2AA' }}>
               <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style={{ color: '#2C3E50' }}>Order Summary</h2>
-              
+
               {/* Items */}
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center gap-2 sm:gap-3">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden" style={{ backgroundColor: '#F8F9FA' }}>
-                      <img 
-                        src={getImageUrl(item.image || item.images?.[0] || item.imageUrl)} 
+                      <img
+                        src={getImageUrl(item.image || item.images?.[0] || item.imageUrl)}
                         alt={item.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -896,7 +897,7 @@ const PlaceOrderPage = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Pricing Breakdown */}
               <div className="space-y-2 border-t pt-3" style={{ borderColor: '#20B2AA' }}>
                 <div className="flex justify-between items-center">
@@ -922,7 +923,7 @@ const PlaceOrderPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="border-t pt-3 mt-3" style={{ borderColor: '#20B2AA' }}>
                 {/* Payment Method Indicator */}
                 <div className="flex justify-between items-center mb-2">
@@ -945,7 +946,7 @@ const PlaceOrderPage = () => {
                     )}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold" style={{ color: '#2C3E50' }}>Total</span>
                   <span className="text-xl font-bold" style={{ color: '#FF6B6B' }}>
@@ -953,7 +954,7 @@ const PlaceOrderPage = () => {
                   </span>
                 </div>
               </div>
-              
+
               {/* Place Order Button */}
               <div className="mt-6">
                 {paymentMethod === 'razorpay' ? (
@@ -973,11 +974,10 @@ const PlaceOrderPage = () => {
                   <button
                     onClick={handlePlaceOrder}
                     disabled={!isFormValid() || isProcessing}
-                    className={`w-full font-semibold py-3 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 ${
-                      !isFormValid() || isProcessing
+                    className={`w-full font-semibold py-3 px-6 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 ${!isFormValid() || isProcessing
                         ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                         : 'bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-600 hover:to-teal-700 hover:shadow-lg hover:scale-105 transform'
-                    }`}
+                      }`}
                   >
                     {isProcessing ? (
                       <>
@@ -1015,8 +1015,8 @@ const PlaceOrderPage = () => {
                     )}
                   </button>
                 )}
-                
-                <Link 
+
+                <Link
                   to="/cart"
                   className="w-full border-2 border-teal-500 text-teal-500 font-semibold py-3 px-6 rounded-2xl transition-all duration-300 text-center block hover:bg-teal-500 hover:text-white hover:shadow-lg hover:scale-105 transform mt-4"
                 >
@@ -1028,7 +1028,7 @@ const PlaceOrderPage = () => {
                   </div>
                 </Link>
               </div>
-              
+
               {/* Security Badge */}
               <div className="mt-6 pt-4 border-t" style={{ borderColor: '#20B2AA' }}>
                 <div className="flex items-center gap-2 text-xs" style={{ color: '#2C3E50' }}>
