@@ -1,7 +1,7 @@
 // Razorpay Configuration and Utilities
 
 // Razorpay API Key (Public Key) - Make sure this is correct
-export const RAZORPAY_KEY_ID = 'rzp_test_RDw5MfnE9HG1rd';
+export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_S2DRgwMm0De1EZ';
 
 // Load Razorpay script
 export const loadRazorpayScript = () => {
@@ -90,7 +90,7 @@ export const initializeRazorpayPayment = async ({
         emi: false
       },
       modal: {
-        ondismiss: function() {
+        ondismiss: function () {
           console.log('Payment modal dismissed');
           if (onDismiss) {
             onDismiss();
@@ -106,7 +106,7 @@ export const initializeRazorpayPayment = async ({
     };
 
     const paymentObject = new window.Razorpay(options);
-    
+
     paymentObject.on('payment.failed', function (response) {
       console.error('Payment Failed:', response.error);
       if (onFailure) {
@@ -134,8 +134,8 @@ export const formatCurrency = (amount) => {
 
 // Validate Razorpay response
 export const validateRazorpayResponse = (response) => {
-  return response && 
-         response.razorpay_payment_id && 
-         response.razorpay_order_id && 
-         response.razorpay_signature;
+  return response &&
+    response.razorpay_payment_id &&
+    response.razorpay_order_id &&
+    response.razorpay_signature;
 };
