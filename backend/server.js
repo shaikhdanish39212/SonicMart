@@ -101,8 +101,10 @@ app.use(cors({
     const localhostRegex = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
     // Allow common LAN IPs (e.g., http://192.168.x.x:port)
     const lanRegex = /^http:\/\/192\.168\.\d+\.\d+(?::\d+)?$/;
+    // Allow Vercel preview URLs
+    const vercelRegex = /^https:\/\/sonic-mart.*\.vercel\.app$/;
 
-    if (localhostRegex.test(origin) || lanRegex.test(origin)) {
+    if (localhostRegex.test(origin) || lanRegex.test(origin) || vercelRegex.test(origin)) {
       return callback(null, true);
     }
 
