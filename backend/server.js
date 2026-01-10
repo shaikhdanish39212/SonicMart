@@ -248,7 +248,9 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/footer', require('./routes/footer')); // Footer functionality (newsletter, contact)
 app.use('/api/returns', require('./routes/returns')); // Returns and refunds functionality
 app.use('/api/realtime', require('./routes/realtime')); // Real-time admin panel routes
+app.use('/api/realtime', require('./routes/realtime')); // Real-time admin panel routes
 app.use('/api/logs', require('./routes/logs')); // System logs management
+app.use('/api/errors', require('./routes/errors')); // Frontend error logging
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -288,30 +290,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Debug DB Endpoint
-app.get('/api/debug-db', async (req, res) => {
-  try {
-    // Access Product model dynamically since it's already registered by routes
-    const Product = mongoose.model('Product');
-    const total = await Product.countDocuments({});
-    const active = await Product.countDocuments({ isActive: true });
 
-    res.json({
-      status: 'success',
-      dbName: mongoose.connection.name,
-      host: mongoose.connection.host,
-      totalProducts: total,
-      activeProducts: active,
-      connectionState: mongoose.connection.readyState
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-});
 
 // 404 handler
 app.use('*', (req, res) => {
