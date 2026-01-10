@@ -1,6 +1,5 @@
 # 🎧 SonicMart - Sound Accessories & Internal Components
 
-![SonicMart Banner](https://via.placeholder.com/1200x400/0f172a/38bdf8?text=SonicMart+High-Fidelity+Experience)
 
 > **The Ultimate Marketplace for Audiophiles & Builders.**  
 > SonicMart is a specialized, full-stack e-commerce platform bridging the gap between high-end audio accessories and professional-grade internal components. Whether you are a listener upgrading your setup or a builder creating a custom crossover, SonicMart covers the entire spectrum.
