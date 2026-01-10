@@ -1,8 +1,8 @@
-# 🎧 SonicMart - Premium Audio E-Commerce Platform
+# 🎧 SonicMart - Sound Accessories & Components
 
-![SonicMart Banner](https://via.placeholder.com/1200x400/1a1a1a/ffffff?text=SonicMart+Premium+Audio)
+![SonicMart Banner](https://via.placeholder.com/1200x400/1a1a1a/ffffff?text=SonicMart+Accessories+%26+Components)
 
-> **Experience Sound Like Never Before.** A fully functional, full-stack e-commerce solution for high-end audio accessories.
+> **The Ultimate Marketplace for Audiophiles & Builders.** A specialized e-commerce platform for high-quality sound accessories and internal audio components.
 
 ## 🚀 Live Demo
 - **Frontend:** [https://sonic-mart.vercel.app](https://sonic-mart.vercel.app)
@@ -11,13 +11,18 @@
 ---
 
 ## 📖 Overview
-SonicMart is a robust **MERN Stack** (MongoDB, Express, React, Node.js) e-commerce application designed for selling premium audio equipment. It features a modern, responsive UI, secure payment integration, admin dashboard, and real-time inventory management.
+SonicMart is a specialized **MERN Stack** e-commerce application designed for the audio community. Unlike generic stores, SonicMart caters to both listeners and creators, offering everything from premium headphones to **internal components** (PCBs, Drivers, Capacitors) for DIY audio projects.
 
 ## ✨ Key Features
+- **🔧 Specialized Inventory**
+  - **Ready-to-Use:** Headphones, Cables, DACs, and Stands.
+  - **Internal Components:** Dedicated section for Speaker Drivers, Crossover Networks, and Amplifier Modules.
+  - **Dynamic Filtering:** Filter by component specs, power rating, and compatibility.
+
 - **🛍️ User Experience**
   - Modern, responsive design with Glassmorphism UI
-  - Advanced Product Filtering & Search
-  - Cart & Wishlist Management with persistent state
+  - Advanced Search for specific part numbers
+  - Cart & Wishlist with bulk order capability
   - User Authentication (JWT) & Profile Management
 
 - **💳 Payments & Orders**
