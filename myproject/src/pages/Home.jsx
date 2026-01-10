@@ -11,20 +11,16 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const { getProductsWithDeals, isProductsCached } = useProductCache();
 
-  const [errorMsg, setErrorMsg] = useState(null);
-
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        setErrorMsg(null);
 
         const result = await getProductsWithDeals();
         console.log(`Home: Loaded ${result.data.length} products`);
         setProducts(result.data);
       } catch (error) {
         console.error('Error fetching products:', error);
-        setErrorMsg(error.toString());
         setProducts([]);
       } finally {
         setLoading(false);
