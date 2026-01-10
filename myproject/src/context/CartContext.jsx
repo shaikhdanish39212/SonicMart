@@ -3,6 +3,9 @@ import { useAuth } from './AuthContext';
 import { cartAPI } from '../utils/api';
 import { toast } from 'react-hot-toast';
 
+// Base URL for direct fetch calls - strip trailing /api if present since endpoints include full path
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+
 export const CartContext = createContext();
 
 export const useCart = () => {
@@ -52,18 +55,18 @@ export const CartProvider = ({ children }) => {
         setIsLoading(true);
         try {
           // GET /api/cart
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cart`, {
+          const response = await fetch(`${API_BASE}/api/cart`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           });
-          
+
           if (response.ok) {
             const result = await response.json();
             const backendCart = result.data?.cart;
-            
+
             if (backendCart && Array.isArray(backendCart.items)) {
               // Transform backend cart format to frontend format
               const transformedCart = backendCart.items.map(item => ({
@@ -113,17 +116,17 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (product) => {
     const productId = product.id || product._id;
-    
+
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       // Show a toast notification requiring login
       toast.error('Please log in to add items to your cart');
       return;
     }
-    
+
     // Add product ID to loading set
     setAddingToCartIds(prev => new Set(prev).add(productId));
-    
+
     try {
       // Update local state optimistically
       setCart(prevCart => {
@@ -143,7 +146,7 @@ export const CartProvider = ({ children }) => {
       if (isAuthenticated && user) {
         try {
           // Use the correct backend endpoint POST /api/cart/items
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cart/items`, {
+          const response = await fetch(`${API_BASE}/api/cart/items`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -151,7 +154,7 @@ export const CartProvider = ({ children }) => {
             },
             body: JSON.stringify({ productId: productId, quantity: 1 })
           });
-          
+
           if (!response.ok) {
             throw new Error('Failed to add to backend cart');
           }
@@ -179,7 +182,7 @@ export const CartProvider = ({ children }) => {
       toast.error('Please log in to manage your cart');
       return;
     }
-    
+
     // Update local state optimistically
     setCart(prevCart => {
       const existingProduct = prevCart.find(item => item.id === productId);
@@ -203,21 +206,21 @@ export const CartProvider = ({ children }) => {
         const existingProduct = cart.find(item => item.id === productId);
         if (existingProduct && existingProduct.quantity === 1) {
           // Remove completely from backend DELETE /api/cart/items/:productId
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cart/items/${productId}`, {
+          const response = await fetch(`${API_BASE}/api/cart/items/${productId}`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           });
-          
+
           if (!response.ok) {
             throw new Error('Failed to remove from backend cart');
           }
         } else {
           // Just reduce quantity by 1 - PUT /api/cart/items/:productId
           const newQuantity = existingProduct.quantity - 1;
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cart/items/${productId}`, {
+          const response = await fetch(`${API_BASE}/api/cart/items/${productId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -225,7 +228,7 @@ export const CartProvider = ({ children }) => {
             },
             body: JSON.stringify({ quantity: newQuantity })
           });
-          
+
           if (!response.ok) {
             throw new Error('Failed to update backend cart');
           }
@@ -242,7 +245,7 @@ export const CartProvider = ({ children }) => {
       toast.error('Please log in to manage your cart');
       return;
     }
-    
+
     if (newQuantity < 1) {
       return removeFromCart(productId);
     }
@@ -260,7 +263,7 @@ export const CartProvider = ({ children }) => {
     if (isAuthenticated && user) {
       try {
         // PUT /api/cart/items/:productId
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cart/items/${productId}`, {
+        const response = await fetch(`${API_BASE}/api/cart/items/${productId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -268,7 +271,7 @@ export const CartProvider = ({ children }) => {
           },
           body: JSON.stringify({ quantity: newQuantity })
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to update backend cart');
         }
@@ -284,39 +287,39 @@ export const CartProvider = ({ children }) => {
       toast.error('Please log in to manage your cart');
       return;
     }
-    
+
     // Store current cart state for potential undo functionality
     const currentCart = [...cart];
-    
+
     // Always clear local state first for immediate UI response
     setCart([]);
     localStorage.removeItem('cart');
-    
+
     // If user is authenticated, sync with backend
     if (isAuthenticated && user) {
       try {
         const token = localStorage.getItem('token');
-        
+
         if (!token) {
           console.warn('No authentication token found');
           return;
         }
-        
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cart`, {
+
+        const response = await fetch(`${API_BASE}/api/cart`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (!response.ok) {
           throw new Error(`Backend clear failed: ${response.status}`);
         }
-        
+
         // Success - cart is cleared both locally and on backend
         console.log('Cart cleared successfully');
-        
+
       } catch (error) {
         console.error('Backend sync error:', error);
         // Don't restore cart on backend error - local clear should persist
