@@ -102,9 +102,9 @@ router.get('/dashboard', protect, admin, async (req, res) => {
     // Debug logging to see exactly what we're returning
     console.log('🔍 ADMIN DASHBOARD API - TOP PRODUCTS BEING RETURNED:');
     topProducts.forEach((p, i) => {
-      console.log(`${i+1}. ${p.name} - ${p.salesCount} sales, Rs${p.price}`);
+      console.log(`${i + 1}. ${p.name} - ${p.salesCount} sales, Rs${p.price}`);
     });
-    
+
     const premiumDJProducts = topProducts.filter(p => p.name.includes('Premium DJ Speakers'));
     console.log(`🔍 Premium DJ Speakers in response: ${premiumDJProducts.length}`);
     premiumDJProducts.forEach(p => {
@@ -226,7 +226,7 @@ router.get('/users', protect, admin, async (req, res) => {
 router.get('/users/:id', protect, admin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-    
+
     if (!user) {
       return res.status(404).json({
         status: 'error',
@@ -453,7 +453,7 @@ router.post('/users', protect, admin, [
 router.delete('/users/:id', protect, admin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({
         status: 'error',
@@ -511,7 +511,7 @@ router.put('/users/:id/role', protect, admin, [
 
     const { role } = req.body;
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({
         status: 'error',
@@ -589,9 +589,9 @@ router.get('/analytics/products', protect, admin, async (req, res) => {
       isActive: true,
       $expr: { $lte: ['$stock', '$lowStockThreshold'] }
     })
-    .select('name stock lowStockThreshold category')
-    .sort({ stock: 1 })
-    .limit(20);
+      .select('name stock lowStockThreshold category')
+      .sort({ stock: 1 })
+      .limit(20);
 
     res.json({
       status: 'success',
@@ -617,10 +617,10 @@ router.get('/analytics/products', protect, admin, async (req, res) => {
 router.get('/analytics/sales', protect, admin, async (req, res) => {
   try {
     const { period = '7d' } = req.query;
-    
+
     let dateFilter = {};
     const now = new Date();
-    
+
     switch (period) {
       case '7d':
         dateFilter.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
@@ -774,15 +774,15 @@ router.get('/products/:id', protect, admin, async (req, res) => {
 router.post('/products', protect, admin, async (req, res) => {
   try {
     const { name, description, price, category, stock, brand, image, sku } = req.body;
-    
+
     // Generate SKU if not provided or validate existing SKU
     let productSku = sku;
-    
+
     if (!productSku) {
       // Generate new SKU using brand and product name
       const checkUnique = async (skuToCheck) => {
-        const existingProduct = await Product.findOne({ 
-          sku: skuToCheck.toUpperCase() 
+        const existingProduct = await Product.findOne({
+          sku: skuToCheck.toUpperCase()
         });
         return !existingProduct;
       };
@@ -795,24 +795,24 @@ router.post('/products', protect, admin, async (req, res) => {
     } else {
       // Validate provided SKU
       if (!validateSKU(productSku)) {
-        return res.status(400).json({ 
-          message: 'Invalid SKU format. SKU must be 8-12 alphanumeric characters.' 
+        return res.status(400).json({
+          message: 'Invalid SKU format. SKU must be 8-12 alphanumeric characters.'
         });
       }
-      
+
       // Ensure uppercase
       productSku = productSku.toUpperCase();
-      
+
       // Check if SKU already exists
       const existingProduct = await Product.findOne({ sku: productSku });
       if (existingProduct) {
         return res.status(400).json({ message: 'SKU already exists' });
       }
     }
-    
+
     // Set default image if not provided
     const productImage = image || null;
-    
+
     const product = new Product({
       name,
       description,
@@ -859,21 +859,21 @@ router.put('/products/:id', protect, admin, async (req, res) => {
       if (sku !== undefined && sku !== product.sku) {
         // Validate the new SKU format
         if (!validateSKU(sku)) {
-          return res.status(400).json({ 
-            message: 'Invalid SKU format. SKU must be 8-12 alphanumeric characters.' 
+          return res.status(400).json({
+            message: 'Invalid SKU format. SKU must be 8-12 alphanumeric characters.'
           });
         }
-        
+
         // Check if the new SKU is unique (excluding current product)
-        const existingProduct = await Product.findOne({ 
+        const existingProduct = await Product.findOne({
           sku: sku.toUpperCase(),
           _id: { $ne: req.params.id }
         });
-        
+
         if (existingProduct) {
           return res.status(400).json({ message: 'SKU already exists for another product' });
         }
-        
+
         product.sku = sku.toUpperCase();
         console.log('Updating product SKU:', product.sku);
       }
@@ -882,11 +882,11 @@ router.put('/products/:id', protect, admin, async (req, res) => {
       if (image !== undefined) {
         product.image = image || null;
       }
-      
+
       if (galleryImages !== undefined) {
         product.galleryImages = galleryImages || [];
       }
-      
+
       // If images array is provided (from frontend form), convert it
       if (images !== undefined && Array.isArray(images)) {
         if (images.length > 0) {
@@ -923,40 +923,40 @@ router.delete('/products/:id', protect, admin, async (req, res) => {
   try {
     console.log('DELETE product request received for ID:', req.params.id);
     console.log('User making request:', req.user?.email);
-    
+
     // Use soft delete by setting isActive to false instead of removing from database
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      { 
+      {
         isActive: false,
         deletedAt: new Date(),
         deletedBy: req.user._id
       },
       { new: true }
     );
-    
+
     console.log('Product found and soft deleted:', product ? 'Yes' : 'No');
 
     if (product) {
       console.log('Product soft deleted successfully:', product.name);
-      res.json({ 
+      res.json({
         status: 'success',
-        message: 'Product removed successfully', 
-        deletedProduct: product 
+        message: 'Product removed successfully',
+        deletedProduct: product
       });
     } else {
       console.log('Product not found for ID:', req.params.id);
-      res.status(404).json({ 
+      res.status(404).json({
         status: 'error',
-        message: 'Product not found' 
+        message: 'Product not found'
       });
     }
   } catch (error) {
     console.error('Error deleting product:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'error',
       message: 'Failed to delete product',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -968,42 +968,42 @@ router.patch('/products/:id/restore', protect, admin, async (req, res) => {
   try {
     console.log('RESTORE product request received for ID:', req.params.id);
     console.log('User making request:', req.user?.email);
-    
+
     // Restore product by setting isActive to true and clearing delete fields
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      { 
+      {
         isActive: true,
-        $unset: { 
+        $unset: {
           deletedAt: 1,
-          deletedBy: 1 
+          deletedBy: 1
         }
       },
       { new: true }
     );
-    
+
     console.log('Product found and restored:', product ? 'Yes' : 'No');
 
     if (product) {
       console.log('Product restored successfully:', product.name);
-      res.json({ 
+      res.json({
         status: 'success',
-        message: 'Product restored successfully', 
-        restoredProduct: product 
+        message: 'Product restored successfully',
+        restoredProduct: product
       });
     } else {
       console.log('Product not found for ID:', req.params.id);
-      res.status(404).json({ 
+      res.status(404).json({
         status: 'error',
-        message: 'Product not found' 
+        message: 'Product not found'
       });
     }
   } catch (error) {
     console.error('Error restoring product:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'error',
       message: 'Failed to restore product',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -1080,10 +1080,10 @@ router.put('/orders/:id', protect, admin, async (req, res) => {
     if (order) {
       const oldStatus = order.orderStatus;
       const newStatus = req.body.status || order.orderStatus;
-      
+
       // Update order status
       order.orderStatus = newStatus;
-      
+
       // Auto-update payment status based on order status
       if (newStatus === 'delivered' && !order.isPaid) {
         // Mark as paid when delivered (assuming COD or payment confirmed)
@@ -1093,7 +1093,7 @@ router.put('/orders/:id', protect, admin, async (req, res) => {
         // Handle cancelled orders - keep payment status as is for refund processing
         // You might want to add refund logic here
       }
-      
+
       // Update delivery status
       if (newStatus === 'delivered' && !order.isDelivered) {
         order.isDelivered = true;
@@ -1102,7 +1102,7 @@ router.put('/orders/:id', protect, admin, async (req, res) => {
         order.isDelivered = false;
         order.deliveredAt = undefined;
       }
-      
+
       const updatedOrder = await order.save();
       res.json(updatedOrder);
     } else {
@@ -1119,14 +1119,14 @@ router.get('/stats', async (req, res) => {
     const totalUsers = await User.countDocuments({ isActive: true });
     const totalProducts = await Product.countDocuments({ isActive: true });
     const totalOrders = await Order.countDocuments();
-    
+
     // Calculate total revenue
     const revenueResult = await Order.aggregate([
       { $match: { status: 'completed' } },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
-    
+
     res.json({
       status: 'success',
       data: {
@@ -1166,34 +1166,34 @@ router.get('/deals', protect, admin, async (req, res) => {
 router.post('/deals', protect, admin, async (req, res) => {
   try {
     console.log('🔥 Creating new deal with data:', req.body);
-    
+
     const newDeal = new Deal(req.body);
     await newDeal.save();
-    
+
     console.log('✅ Deal created successfully:', newDeal._id);
     res.status(201).json({ status: 'success', data: newDeal });
   } catch (error) {
     console.error('❌ Deal creation failed:', error);
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = {};
       Object.keys(error.errors).forEach(key => {
         validationErrors[key] = error.errors[key].message;
       });
-      
+
       console.log('📋 Validation errors:', validationErrors);
-      return res.status(400).json({ 
-        status: 'error', 
+      return res.status(400).json({
+        status: 'error',
         message: 'Validation failed',
         errors: validationErrors,
         details: Object.values(validationErrors).join(', ')
       });
     }
-    
+
     // Handle other errors
-    res.status(400).json({ 
-      status: 'error', 
+    res.status(400).json({
+      status: 'error',
       message: error.message || 'Failed to create deal'
     });
   }
@@ -1205,46 +1205,46 @@ router.post('/deals', protect, admin, async (req, res) => {
 router.put('/deals/:id', protect, admin, async (req, res) => {
   try {
     console.log('🔄 Updating deal:', req.params.id, 'with data:', req.body);
-    
+
     const updatedDeal = await Deal.findByIdAndUpdate(
-      req.params.id, 
-      req.body, 
-      { 
-        new: true, 
+      req.params.id,
+      req.body,
+      {
+        new: true,
         runValidators: true // This ensures validation runs on update
       }
     );
-    
+
     if (!updatedDeal) {
-      return res.status(404).json({ 
-        status: 'error', 
-        message: 'Deal not found' 
+      return res.status(404).json({
+        status: 'error',
+        message: 'Deal not found'
       });
     }
-    
+
     console.log('✅ Deal updated successfully:', updatedDeal._id);
     res.json({ status: 'success', data: updatedDeal });
   } catch (error) {
     console.error('❌ Deal update failed:', error);
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = {};
       Object.keys(error.errors).forEach(key => {
         validationErrors[key] = error.errors[key].message;
       });
-      
+
       console.log('📋 Validation errors:', validationErrors);
-      return res.status(400).json({ 
-        status: 'error', 
+      return res.status(400).json({
+        status: 'error',
         message: 'Validation failed',
         errors: validationErrors,
         details: Object.values(validationErrors).join(', ')
       });
     }
-    
-    res.status(400).json({ 
-      status: 'error', 
+
+    res.status(400).json({
+      status: 'error',
       message: error.message || 'Failed to update deal'
     });
   }
@@ -1279,10 +1279,20 @@ router.get('/coupons', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.post('/coupons', protect, admin, async (req, res) => {
   try {
+    console.log('📝 Creating coupon with data:', JSON.stringify(req.body, null, 2));
     const newCoupon = new Coupon(req.body);
     await newCoupon.save();
+    console.log('✅ Coupon created:', newCoupon.code);
     res.status(201).json({ status: 'success', data: newCoupon });
   } catch (error) {
+    console.error('❌ Coupon creation failed:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ status: 'error', message: 'Coupon code must be unique' });
+    }
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({ status: 'error', message: messages.join(', ') });
+    }
     res.status(400).json({ status: 'error', message: error.message });
   }
 });
@@ -1334,8 +1344,8 @@ router.get('/contacts', protect, admin, async (req, res) => {
 
     const totalContacts = await Contact.countDocuments(filter);
 
-    res.json({ 
-      status: 'success', 
+    res.json({
+      status: 'success',
       data: {
         contacts,
         pagination: {
@@ -1372,7 +1382,7 @@ router.put('/contacts/:id', protect, admin, async (req, res) => {
   try {
     const { status, priority, adminNotes } = req.body;
     const contact = await Contact.findById(req.params.id);
-    
+
     if (!contact) {
       return res.status(404).json({ status: 'error', message: 'Contact not found' });
     }
