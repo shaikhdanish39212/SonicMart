@@ -34,6 +34,12 @@ function Home() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FEFCF3' }}>
       {/* Hero Banner - Full Width */}
+      <div className="bg-red-500 text-white p-4 text-center font-bold text-sm">
+        DEBUG MODE: <br />
+        API URL: [{import.meta.env.VITE_API_URL || 'UNDEFINED - USING LOCALHOST'}] <br />
+        Products Found: {products.length} <br />
+        Loading: {loading ? 'YES' : 'NO'}
+      </div>
       <HeroBanner />
 
       {/* Featured Products - Mobile Optimized */}
