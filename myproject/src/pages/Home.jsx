@@ -11,16 +11,20 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const { getProductsWithDeals, isProductsCached } = useProductCache();
 
+  const [errorMsg, setErrorMsg] = useState(null);
+
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoading(true);
+        setErrorMsg(null);
 
         const result = await getProductsWithDeals();
-        console.log(`Home: Loaded ${result.data.length} products with deals ${result.fromCache ? '(from cache)' : '(fresh data)'}`);
+        console.log(`Home: Loaded ${result.data.length} products`);
         setProducts(result.data);
       } catch (error) {
         console.error('Error fetching products:', error);
+        setErrorMsg(error.toString());
         setProducts([]);
       } finally {
         setLoading(false);
@@ -36,9 +40,10 @@ function Home() {
       {/* Hero Banner - Full Width */}
       <div className="bg-red-500 text-white p-4 text-center font-bold text-sm">
         DEBUG MODE: <br />
-        API URL: [{import.meta.env.VITE_API_URL || 'UNDEFINED - USING LOCALHOST'}] <br />
+        API URL: [{import.meta.env.VITE_API_URL || 'UNDEFINED'}] <br />
         Products Found: {products.length} <br />
-        Loading: {loading ? 'YES' : 'NO'}
+        Loading: {loading ? 'YES' : 'NO'} <br />
+        Error: {errorMsg || 'NONE'}
       </div>
       <HeroBanner />
 
