@@ -12,102 +12,102 @@ import { productsAPI } from '../utils/api';
 
 const ProductCardModern = memo(({ product, viewType = 'grid' }) => {
   ;
-const { addToCart, isAddingToCart } = useCart();
-const { addToComparison, removeFromComparison, isInComparison } = useProductComparison();
-const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-const [isHovered, setIsHovered] = useState(false);
-const [localStats, setLocalStats] = useState({
-  averageRating: 0,
-  totalReviews: 0
-});
-const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const { addToCart, isAddingToCart } = useCart();
+  const { addToComparison, removeFromComparison, isInComparison } = useProductComparison();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const [isHovered, setIsHovered] = useState(false);
+  const [localStats, setLocalStats] = useState({
+    averageRating: 0,
+    totalReviews: 0
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
-// Always fetch fresh product stats to ensure consistency across all 230 products
-useEffect(() => {
-  const fetchFreshStats = async (retryCount = 0) => {
-    try {
-      setIsLoadingStats(true);
-      const productId = product._id || product.id;
-      if (!productId) {
-        setIsLoadingStats(false);
-        return;
-      }
-      
-      console.log(`🔄 Fetching fresh stats for product: ${productId}` + (retryCount > 0 ? ` (retry ${retryCount})` : ''));
-      
-      // Use productsAPI with cache-busting to ensure fresh data
-      const data = await productsAPI.getProduct(productId, true);
-      const freshProduct = data.data?.product || data.data;
-      if (freshProduct) {
+  // Always fetch fresh product stats to ensure consistency across all 230 products
+  useEffect(() => {
+    const fetchFreshStats = async (retryCount = 0) => {
+      try {
+        setIsLoadingStats(true);
+        const productId = product._id || product.id;
+        if (!productId) {
+          setIsLoadingStats(false);
+          return;
+        }
+
+        console.log(`🔄 Fetching fresh stats for product: ${productId}` + (retryCount > 0 ? ` (retry ${retryCount})` : ''));
+
+        // Use productsAPI with cache-busting to ensure fresh data
+        const data = await productsAPI.getProduct(productId, true);
+        const freshProduct = data.data?.product || data.data;
+        if (freshProduct) {
           const freshStats = {
             averageRating: freshProduct.averageRating || 0,
             totalReviews: freshProduct.totalReviews || 0
           };
-          
+
           console.log(`✅ Fresh stats for ${productId}:`, freshStats);
           setLocalStats(freshStats);
-          
+
           // Update sessionStorage for consistency
           try {
             const key = 'updatedProductStats';
             const existing = JSON.parse(sessionStorage.getItem(key) || '{}');
             existing[productId] = { ...freshStats, ts: Date.now() };
             sessionStorage.setItem(key, JSON.stringify(existing));
-          } catch {}
+          } catch { }
         }
-    } catch (error) {
-      console.warn(`❌ Failed to fetch fresh stats for ${product._id}:`, error);
-      
-      // If it's a rate limit error (429) or network error, retry with exponential backoff
-      if ((error.response?.status === 429 || error.message?.includes('Failed to fetch')) && retryCount < 3) {
-        const backoffDelay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000; // 1s, 2s, 4s + jitter
-        console.log(`⏳ Rate limited, retrying after ${backoffDelay.toFixed(0)}ms...`);
-        setTimeout(() => {
-          fetchFreshStats(retryCount + 1);
-        }, backoffDelay);
-        return; // Don't proceed to finally block
+      } catch (error) {
+        console.warn(`❌ Failed to fetch fresh stats for ${product._id}:`, error);
+
+        // If it's a rate limit error (429) or network error, retry with exponential backoff
+        if ((error.response?.status === 429 || error.message?.includes('Failed to fetch')) && retryCount < 3) {
+          const backoffDelay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000; // 1s, 2s, 4s + jitter
+          console.log(`⏳ Rate limited, retrying after ${backoffDelay.toFixed(0)}ms...`);
+          setTimeout(() => {
+            fetchFreshStats(retryCount + 1);
+          }, backoffDelay);
+          return; // Don't proceed to finally block
+        }
+
+        // Use the product's existing stats as absolute fallback
+        setLocalStats({
+          averageRating: product.averageRating || product.rating || 0,
+          totalReviews: product.totalReviews || product.reviewCount || 0
+        });
+      } finally {
+        setIsLoadingStats(false);
       }
-      
-      // Use the product's existing stats as absolute fallback
-      setLocalStats({
-        averageRating: product.averageRating || product.rating || 0,
-        totalReviews: product.totalReviews || product.reviewCount || 0
-      });
-    } finally {
-      setIsLoadingStats(false);
-    }
-  };
+    };
 
-  // Listen for global rating updates (after review submission)
-  const handler = (e) => {
-    const { productId, averageRating, totalReviews } = e.detail || {};
-    const thisId = product._id || product.id;
-    if (!thisId || !productId) return;
-    if (String(thisId) === String(productId)) {
-      console.log(`📡 Received rating update for ${thisId}:`, { averageRating, totalReviews });
-      setLocalStats({ averageRating, totalReviews });
-    }
-  };
-  window.addEventListener('product-rating-updated', handler);
+    // Listen for global rating updates (after review submission)
+    const handler = (e) => {
+      const { productId, averageRating, totalReviews } = e.detail || {};
+      const thisId = product._id || product.id;
+      if (!thisId || !productId) return;
+      if (String(thisId) === String(productId)) {
+        console.log(`📡 Received rating update for ${thisId}:`, { averageRating, totalReviews });
+        setLocalStats({ averageRating, totalReviews });
+      }
+    };
+    window.addEventListener('product-rating-updated', handler);
 
-  // Always fetch fresh stats with staggered timing to prevent server overload
-  const delay = Math.random() * 2000; // Random delay 0-2 seconds
-  const timeoutId = setTimeout(() => {
-    fetchFreshStats();
-  }, delay);
+    // Always fetch fresh stats with staggered timing to prevent server overload
+    const delay = Math.random() * 2000; // Random delay 0-2 seconds
+    const timeoutId = setTimeout(() => {
+      fetchFreshStats();
+    }, delay);
 
-  return () => {
-    window.removeEventListener('product-rating-updated', handler);
-    clearTimeout(timeoutId);
-  };
-}, [product._id, product.id]);
+    return () => {
+      window.removeEventListener('product-rating-updated', handler);
+      clearTimeout(timeoutId);
+    };
+  }, [product._id, product.id]);
 
   // Check if this is an internal component by looking at the image path, category, or name pattern
   const isInternalComponent = product.category === 'internal-components' ||
-                             product.image?.includes('/internal_components/images/') || 
-                             product.images?.[0]?.includes('/internal_components/images/') ||
-                             product.imageUrl?.includes('/internal_components/images/') ||
-                             product.isInternalComponent;
+    product.image?.includes('/internal_components/images/') ||
+    product.images?.[0]?.includes('/internal_components/images/') ||
+    product.imageUrl?.includes('/internal_components/images/') ||
+    product.isInternalComponent;
 
   // Check if this product has deal pricing
   const isDealProduct = product.type === 'special-deal' || product.dealInfo;
@@ -115,7 +115,7 @@ useEffect(() => {
   // Generate the correct navigation path
   const getProductPath = () => {
     const basePath = isInternalComponent ? `/component/${product._id || product.id}` : `/product/${product._id || product.id}`;
-    
+
     // Add deal parameters if this is a deal product
     if (isDealProduct && product.discount) {
       const params = new URLSearchParams({
@@ -126,49 +126,49 @@ useEffect(() => {
       });
       return `${basePath}?${params.toString()}`;
     }
-    
+
     return basePath;
   };
 
-const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
   }, []);
-const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
   }, []);
-const handleAddToCart = useCallback(() => {
+  const handleAddToCart = useCallback(() => {
     console.log('Adding to cart product:', product._id || product.id);
     addToCart(product);
     console.log('Cart operation completed');
   }, [addToCart, product]);
-const handleToggleComparison = useCallback((e) => {
+  const handleToggleComparison = useCallback((e) => {
     if (e) e.stopPropagation();
     console.log('Toggling comparison for product:', product._id || product.id);
-if (isInComparison(product._id || product.id)) {
+    if (isInComparison(product._id || product.id)) {
       removeFromComparison(product._id || product.id);
     } else {
       addToComparison(product);
     }
   }, [addToComparison, removeFromComparison, isInComparison, product]);
-const handleToggleWishlist = useCallback(async (e) => {
+  const handleToggleWishlist = useCallback(async (e) => {
     if (e) e.stopPropagation();
     console.log('Toggling wishlist for product:', product._id || product.id);
-const productId = product._id || product.id;
-if (isInWishlist(productId)) {
+    const productId = product._id || product.id;
+    if (isInWishlist(productId)) {
       removeFromWishlist(productId);
     } else {
       const success = await addToWishlist(productId);
-if (success === false) {
+      if (success === false) {
         // Could show a toast notification or redirect to login
         alert('Please login to add items to your wishlist');
       }
     }
   }, [addToWishlist, removeFromWishlist, isInWishlist, product]);
-const renderStars = (rating) => {
+  const renderStars = (rating) => {
     ;
-const stars = [];
-const fullStars = Math.floor(rating);
-const hasHalfStar = rating % 1 !== 0;
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 1; i <= 5; i++) {
       if (i <= fullStars) {
@@ -191,7 +191,7 @@ const hasHalfStar = rating % 1 !== 0;
   // Use discount from API directly (deals have proper discount values)
   // Handle both number and string discount values
   const apiDiscount = product.discount ? Number(product.discount) : 0;
-  const discountPercentage = apiDiscount > 0 ? apiDiscount : 
+  const discountPercentage = apiDiscount > 0 ? apiDiscount :
     (product.originalPrice && product.originalPrice > (product.discountedPrice || product.price)
       ? Math.round(((product.originalPrice - (product.discountedPrice || product.price)) / product.originalPrice) * 100)
       : 0);
@@ -213,9 +213,9 @@ const hasHalfStar = rating % 1 !== 0;
   // Grid view (default) - Mobile-first responsive card design
   if (viewType === 'grid') {
     return (
-    <div
+      <div
         className="group relative rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 sm:duration-500 transform hover:-translate-y-1 sm:hover:-translate-y-2 border overflow-hidden"
-        style={{ 
+        style={{
           backgroundColor: '#FEFCF3',
           borderColor: '#20B2AA'
         }}
@@ -225,7 +225,7 @@ const hasHalfStar = rating % 1 !== 0;
         {/* Top Badges - Mobile Optimized */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20 flex flex-col gap-1 sm:gap-2">
           {discountPercentage > 0 && (
-            <div 
+            <div
               className="text-white px-2 py-1 sm:px-3 rounded-full text-xs font-bold shadow-lg animate-pulse"
               style={{ backgroundColor: '#2C3E50' }}
             >
@@ -233,7 +233,7 @@ const hasHalfStar = rating % 1 !== 0;
             </div>
           )}
           {product.featured && (
-            <div 
+            <div
               className="text-white px-2 py-1 sm:px-3 rounded-full text-xs font-bold shadow-lg"
               style={{ backgroundColor: '#20B2AA' }}
             >
@@ -253,25 +253,24 @@ const hasHalfStar = rating % 1 !== 0;
               handleToggleWishlist(e);
             }}
             className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 group/wishlist"
-            style={{ 
+            style={{
               backgroundColor: isInWishlist(product._id || product.id) ? '#FF6B6B' : 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(8px)',
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           >
             <Heart
-              className={`w-4 h-4 transition-all duration-300 ${
-                isInWishlist(product._id || product.id)
+              className={`w-4 h-4 transition-all duration-300 ${isInWishlist(product._id || product.id)
                   ? 'scale-110'
                   : 'group-hover/wishlist:scale-110'
-              }`}
-              style={{ 
+                }`}
+              style={{
                 color: isInWishlist(product._id || product.id) ? 'white' : '#FF6B6B',
                 fill: isInWishlist(product._id || product.id) ? 'white' : 'none'
               }}
             />
           </button>
-          
+
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -279,19 +278,18 @@ const hasHalfStar = rating % 1 !== 0;
               handleToggleComparison(e);
             }}
             className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 group/compare"
-            style={{ 
+            style={{
               backgroundColor: isInComparison(product._id || product.id) ? '#20B2AA' : 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(8px)',
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           >
             <Scale
-              className={`w-4 h-4 transition-all duration-300 ${
-                isInComparison(product._id || product.id)
+              className={`w-4 h-4 transition-all duration-300 ${isInComparison(product._id || product.id)
                   ? 'scale-110'
                   : 'group-hover/compare:scale-110'
-              }`}
-              style={{ 
+                }`}
+              style={{
                 color: isInComparison(product._id || product.id) ? 'white' : '#20B2AA'
               }}
             />
@@ -308,7 +306,10 @@ const hasHalfStar = rating % 1 !== 0;
                 effect="blur"
                 className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 sm:group-hover:scale-110 p-1 sm:p-2"
                 wrapperClassName="w-full h-full"
-                onError={(e) => { e.target.style.display = 'none'; }}
+                onError={(e) => {
+                  console.error('Image load failed:', e.target.src);
+                  e.target.style.display = 'none';
+                }}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 p-1 sm:p-2">
@@ -325,14 +326,14 @@ const hasHalfStar = rating % 1 !== 0;
           {/* Stock Indicator */}
           <div className="absolute bottom-2 right-2">
             {product.stock > 0 ? (
-              <div 
+              <div
                 className="px-2 py-1 rounded-full text-xs font-semibold"
                 style={{ backgroundColor: '#20B2AA', color: 'white' }}
               >
                 In Stock
               </div>
             ) : (
-              <div 
+              <div
                 className="px-2 py-1 rounded-full text-xs font-semibold"
                 style={{ backgroundColor: '#FF6B6B', color: 'white' }}
               >
@@ -346,16 +347,16 @@ const hasHalfStar = rating % 1 !== 0;
         <div className="p-2 sm:p-3">
           {/* Brand - Hide on very small screens */}
           {product.brand && (
-            <div 
+            <div
               className="hidden sm:block text-xs font-bold uppercase tracking-wider mb-2 opacity-80"
               style={{ color: '#20B2AA' }}
             >{product.brand}
-      </div>
-    )
-  }
+            </div>
+          )
+          }
 
           {/* Product Name - Mobile Responsive */}
-          <h3 
+          <h3
             className="text-xs sm:text-sm font-bold mb-1 sm:mb-2 line-clamp-2 leading-tight group-hover:transition-colors duration-300"
             style={{ color: '#2C3E50' }}
           >
@@ -392,9 +393,9 @@ const hasHalfStar = rating % 1 !== 0;
               <span className="text-base sm:text-lg lg:text-xl font-black" style={{ color: '#2C3E50' }}>{formatPrice(displayPrice)}</span>
               {showOriginal && showOriginal !== displayPrice && (
                 <span className="text-sm sm:text-base line-through" style={{ color: '#FF6B6B' }}>{formatPrice(showOriginal)}
-      </span>
-    )
-  }
+                </span>
+              )
+              }
             </div>
             {discountPercentage > 0 && (
               <div className="text-xs sm:text-sm font-semibold" style={{ color: '#20B2AA' }}>
@@ -408,18 +409,17 @@ const hasHalfStar = rating % 1 !== 0;
           <button
             onClick={handleAddToCart}
             disabled={isAddingToCart(product._id || product.id) || product.stock === 0}
-            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 transform touch-target ${
-              product.stock === 0
+            className={`w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 transform touch-target ${product.stock === 0
                 ? 'cursor-not-allowed'
                 : isAddingToCart(product._id || product.id)
                   ? 'scale-95'
                   : 'hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
-            }`}
+              }`}
             style={{
-              background: product.stock === 0 
-                ? '#F8F9FA' 
-                : isAddingToCart(product._id || product.id) 
-                  ? 'linear-gradient(135deg, #FF6B6B 0%, #20B2AA 100%)' 
+              background: product.stock === 0
+                ? '#F8F9FA'
+                : isAddingToCart(product._id || product.id)
+                  ? 'linear-gradient(135deg, #FF6B6B 0%, #20B2AA 100%)'
                   : 'linear-gradient(135deg, #FF6B6B 0%, #20B2AA 100%)',
               color: product.stock === 0 ? '#2C3E50' : 'white'
             }}
@@ -443,9 +443,9 @@ const hasHalfStar = rating % 1 !== 0;
 
   // List view - Horizontal layout inspired by Amazon/Flipkart
   return (
-    <div 
+    <div
       className="group rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border-2 overflow-hidden"
-      style={{ 
+      style={{
         backgroundColor: '#FEFCF3',
         borderColor: '#20B2AA'
       }}
@@ -456,7 +456,7 @@ const hasHalfStar = rating % 1 !== 0;
           {/* Badges */}
           <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
             {discountPercentage > 0 && (
-              <div 
+              <div
                 className="text-white px-2 py-1 rounded-lg text-xs font-bold"
                 style={{ backgroundColor: '#FF6B6B' }}
               >
@@ -478,13 +478,13 @@ const hasHalfStar = rating % 1 !== 0;
             >
               <Heart
                 className="w-4 h-4"
-                style={{ 
+                style={{
                   color: isInWishlist(product._id || product.id) ? '#FF6B6B' : '#2C3E50',
                   fill: isInWishlist(product._id || product.id) ? '#FF6B6B' : 'none'
                 }}
               />
             </button>
-            
+
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -492,19 +492,19 @@ const hasHalfStar = rating % 1 !== 0;
                 handleToggleComparison(e);
               }}
               className="p-1 rounded-full transition-all duration-300 transform hover:scale-110"
-              style={{ 
+              style={{
                 backgroundColor: isInComparison(product._id || product.id) ? '#20B2AA' : '#F8F9FA'
               }}
             >
               <Scale
                 className="w-4 h-4"
-                style={{ 
+                style={{
                   color: isInComparison(product._id || product.id) ? 'white' : '#2C3E50'
                 }}
               />
             </button>
           </div>
-          
+
           <Link to={getProductPath()} className="block w-full h-full">
             {(product.images?.[0] || product.image || product.imageUrl) ? (
               <LazyLoadImage
@@ -533,13 +533,13 @@ const hasHalfStar = rating % 1 !== 0;
           <div>
             {/* Brand */}
             {product.brand && (
-              <div 
+              <div
                 className="text-xs font-bold uppercase tracking-wider mb-2"
                 style={{ color: '#20B2AA' }}
               >{product.brand}
-      </div>
-    )
-  }
+              </div>
+            )
+            }
 
             {/* Product Name */}
             <h3 className="text-xl font-bold mb-2 line-clamp-2" style={{ color: '#2C3E50' }}>
@@ -582,16 +582,16 @@ const hasHalfStar = rating % 1 !== 0;
                 <span className="text-2xl font-black" style={{ color: '#2C3E50' }}>{formatPrice(displayPrice)}</span>
                 {showOriginal && showOriginal !== displayPrice && (
                   <span className="text-lg line-through" style={{ color: '#FF6B6B' }}>{formatPrice(showOriginal)}
-      </span>
-    )
-  }
+                  </span>
+                )
+                }
               </div>
               {discountPercentage > 0 && (
                 <div className="text-sm font-semibold" style={{ color: '#20B2AA' }}>
                   Save {formatPrice(savings)}
-      </div>
-    )
-  }
+                </div>
+              )
+              }
             </div>
 
             {/* Add to Cart Button */}
@@ -600,10 +600,10 @@ const hasHalfStar = rating % 1 !== 0;
               disabled={isAddingToCart(product._id || product.id) || product.stock === 0}
               className="px-8 py-3 rounded-xl font-bold text-sm transition-all duration-300 transform hover:scale-105"
               style={{
-                background: product.stock === 0 
-                  ? '#F8F9FA' 
-                  : isAddingToCart(product._id || product.id) 
-                    ? 'linear-gradient(135deg, #FF6B6B 0%, #20B2AA 100%)' 
+                background: product.stock === 0
+                  ? '#F8F9FA'
+                  : isAddingToCart(product._id || product.id)
+                    ? 'linear-gradient(135deg, #FF6B6B 0%, #20B2AA 100%)'
                     : 'linear-gradient(135deg, #FF6B6B 0%, #20B2AA 100%)',
                 color: product.stock === 0 ? '#2C3E50' : 'white'
               }}
@@ -627,8 +627,8 @@ const hasHalfStar = rating % 1 !== 0;
       </div>
     </div>
   );
-    }
-  );
+}
+);
 
 ProductCardModern.displayName = 'ProductCardModern';
 
