@@ -86,7 +86,7 @@ const defaultOrigins = [
   'http://127.0.0.1:5000'
 ];
 const allowedOrigins = []
-  .concat(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
+  .concat(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : [])
   .concat(defaultOrigins);
 
 app.use(cors({
@@ -122,7 +122,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Pragma, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
-  
+
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -144,7 +144,7 @@ if (process.env.NODE_ENV === 'development') {
 // Custom API request logging middleware
 app.use((req, res, next) => {
   const startTime = Date.now();
-  
+
   // Log the request start
   logger.info(`API Request: ${req.method} ${req.originalUrl}`, {
     method: req.method,
@@ -153,19 +153,19 @@ app.use((req, res, next) => {
     userAgent: req.get('User-Agent'),
     userId: req.user?.id || 'anonymous'
   });
-  
+
   // Override res.end to capture response time
   const originalEnd = res.end;
-  res.end = function(...args) {
+  res.end = function (...args) {
     const duration = Date.now() - startTime;
-    
+
     // Log API request completion
     logger.api(req.method, req.originalUrl || req.url, res.statusCode, duration, {
       ip: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent'),
       userId: req.user?.id
     });
-    
+
     // Log performance if slow
     if (duration > 2000) {
       logger.performance(`API ${req.method} ${req.originalUrl}`, duration, {
@@ -173,10 +173,10 @@ app.use((req, res, next) => {
         userId: req.user?.id
       });
     }
-    
+
     originalEnd.apply(this, args);
   };
-  
+
   next();
 });
 
@@ -308,7 +308,7 @@ app.use((error, req, res, next) => {
     params: req.params,
     query: req.query
   };
-  
+
   // Mongoose bad ObjectId
   if (error.name === 'CastError') {
     logger.warn('Invalid ObjectId provided', { ...errorContext, errorType: 'CastError' });
@@ -317,7 +317,7 @@ app.use((error, req, res, next) => {
       message: 'Resource not found'
     });
   }
-  
+
   // Mongoose validation error
   if (error.name === 'ValidationError') {
     const messages = Object.values(error.errors).map(val => val.message);
@@ -328,7 +328,7 @@ app.use((error, req, res, next) => {
       errors: messages
     });
   }
-  
+
   // Mongoose duplicate key error
   if (error.code === 11000) {
     const field = Object.keys(error.keyValue)[0];
@@ -338,7 +338,7 @@ app.use((error, req, res, next) => {
       message: `${field} already exists`
     });
   }
-  
+
   // JWT errors
   if (error.name === 'JsonWebTokenError') {
     logger.security('Invalid JWT token provided', { ...errorContext, errorType: 'InvalidToken', severity: 'medium' });
@@ -347,7 +347,7 @@ app.use((error, req, res, next) => {
       message: 'Invalid token'
     });
   }
-  
+
   if (error.name === 'TokenExpiredError') {
     logger.security('Expired JWT token used', { ...errorContext, errorType: 'ExpiredToken', severity: 'low' });
     return res.status(401).json({
@@ -355,7 +355,7 @@ app.use((error, req, res, next) => {
       message: 'Token expired'
     });
   }
-  
+
   // Rate limit errors
   if (error.status === 429) {
     logger.security('Rate limit exceeded', { ...errorContext, errorType: 'RateLimit', severity: 'medium' });
@@ -364,7 +364,7 @@ app.use((error, req, res, next) => {
       message: 'Too many requests, please try again later'
     });
   }
-  
+
   // All other errors
   logger.error('Unhandled server error', {
     ...errorContext,
@@ -372,7 +372,7 @@ app.use((error, req, res, next) => {
     errorName: error.name,
     critical: (error.statusCode || 500) >= 500
   });
-  
+
   // Default error
   res.status(error.statusCode || 500).json({
     status: 'error',
