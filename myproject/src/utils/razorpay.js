@@ -1,7 +1,7 @@
 // Razorpay Configuration and Utilities
 
 // Razorpay API Key (Public Key) - Make sure this is correct
-export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_S2DRgwMm0De1EZ';
+export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_S2Dx09tyNPf10E';
 
 // Load Razorpay script
 export const loadRazorpayScript = () => {
